@@ -1,3 +1,4 @@
+// Define all area levels/groups used in ELS
 const uk = {label: "United Kingdom", codes: ["K02"]};
 const ctry = {label: "Country", codes: ["E92", "N92", "S92", "W92"]};
 const rgn = {label: "Region", codes: ["E12"]};
@@ -16,6 +17,7 @@ const msoa = {label: "Middle-layer super output area", codes: ["E02", "W02"]};
 const lsoa = {label: "Lower-layer super output area", codes: ["E01", "W01"]};
 const oa = {label: "Output area", codes: ["E00", "W00"]};
 
+// Alternative labels where geography type names vary from level/group names
 const altLabels = {
 	E08: "Metropolitan district",
 	E09: "Borough",
@@ -24,6 +26,7 @@ const altLabels = {
   W04: "Community"
 };
 
+// Overlapping groupings of geographies for visualising data
 export const geoLevels = {
   ctry: {label: ctry.label, codes: [...uk.codes, ...ctry.codes]},
   rgn: {label: "Region/country", codes: ["N92", "S92", "W92", ...rgn.codes]},
@@ -32,6 +35,7 @@ export const geoLevels = {
   ltla
 };
 
+// Mutually exclusive groupings for navigation and selections
 export const geoLevelsNamed = {uk, ctry, rgn, cauth, cty, ltla, wpc, wd, par, sener, senc};
 export const geoLevelsAll = {...geoLevelsNamed, msoa, lsoa, oa};
 
