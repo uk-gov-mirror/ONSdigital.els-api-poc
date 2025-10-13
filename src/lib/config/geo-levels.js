@@ -32,7 +32,7 @@ export const geoLevels = {
   ltla
 };
 
-export const geoLevelsNamed = {uk, rgn, cauth, cty, ltla, wpc, wd, par, sener, senc};
+export const geoLevelsNamed = {uk, ctry, rgn, cauth, cty, ltla, wpc, wd, par, sener, senc};
 export const geoLevelsAll = {...geoLevelsNamed, msoa, lsoa, oa};
 
 function makeArray(obj) {
