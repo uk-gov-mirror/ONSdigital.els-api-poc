@@ -27,3 +27,7 @@ export function isValidPartialPostcode(code) {
 export function isValidLngLat(lng, lat) {
   return Math.abs(lng) <= 180 && Math.abs(lat) <= 90;
 }
+
+export function ascending(a, b) {
+  return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
+}
