@@ -14,7 +14,7 @@ export function parseData(data) {
 }
 
 export async function fetchChartData(indicator, geography = "ltla", time = "latest") {
-  const url = resolve(`/api/v1/data.json?indicator=${indicator}&geo=${geography}&time=${time}`);
+  const url = resolve(`/api/v0/data.json?indicator=${indicator}&geo=${geography}&time=${time}`);
   const data = await (await fetch(url)).json();
   console.log({data})
   return parseData(data[indicator]);
@@ -23,7 +23,7 @@ export async function fetchChartData(indicator, geography = "ltla", time = "late
 export async function fetchTopicsData(selected, geography = "ltla", time = "latest") {
   const exclude = ["population-by-age-and-sex"];
 
-  const dataUrl = resolve(`/api/v1/data.json?geo=${geography}&time=${time}`);
+  const dataUrl = resolve(`/api/v0/data.json?geo=${geography}&time=${time}`);
   const data = await (await fetch(dataUrl)).json();
 
   const metaUrl = resolve(`/api/v1/metadata/indicators?geo=${selected.areacd}`);
