@@ -15,7 +15,8 @@
   import groupAreasByLevel from "$lib/api/geo/helpers/groupAreasByLevel.js";
   import { fetchChartData } from "$lib/utils.js";
 
-  export let data;
+  let { data } = $props();
+  $inspect(data);
 </script>
 
 <PhaseBanner phase="prototype"/>
@@ -67,7 +68,7 @@
     <NavSection title="Similar areas">
       {#each data.related.similar as cluster}
         <h3>{cluster.label}</h3>
-        {@render list(cluster.similar.slice(0, 10).map(cd => data.areaLookup[cd]))}
+        {@render list(cluster.similar.slice(0, 10))}
       {/each}
       <!-- {@render list([...data.area.properties.children].sort((a, b) => a?.areanm?.localeCompare(b?.areanm)))} -->
     </NavSection>
