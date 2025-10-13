@@ -81,7 +81,7 @@ function toRows(cube, dims) {
 		const row = {indicator: cube.extension.slug};
 		for (let i = 0; i < dims.length - 1; i ++) row[dims[i].key] = item[i + 1];
 		for (let j = 0; j < measuresLength; j ++) {
-			row[measures.values[j][0]] = cube.value[(item[0] * measures.count) + j]
+			row[measures.values[j][0]] = cube.value[(item[0] * measures.count) + measures.values[j][1]]
 		}
 		rows.push(row);
 	}
@@ -100,7 +100,7 @@ function toJSON(cube, dims) {
 	for (const item of items) {
 		for (let i = 0; i < dims.length - 1; i ++) data[dims[i].key].push(item[i + 1]);
 		for (let j = 0; j < measuresLength; j ++) {
-			data[measures.values[j][0]].push(cube.value[(item[0] * measures.count) + j]);
+			data[measures.values[j][0]].push(cube.value[(item[0] * measures.count) + measures.values[j][1]]);
 		}
 	}
 	return [cube.extension.slug, data];
