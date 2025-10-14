@@ -27,10 +27,10 @@ function csvSerialise(datasets) {
 	return csvFormat(datasets.flat());
 }
 
-function toCSVW(datasets, measure, url) {
+function toCSVW(datasets, measure, href) {
 	let metadata = {
 		"@context": "http://www.w3.org/ns/csvw",
-		url: url.href.replace(".csvw", ".csv"),
+		url: href.replace(".csvw", ".csv"),
 		"rdfs:label": "Filtered datasets from ONS Explore Local Statistics API",
 	}
 	if (datasets.length === 1) {
@@ -97,7 +97,7 @@ function toCSVW(datasets, measure, url) {
 	return metadata;
 }
 
-export default function filterCollection(params = {}, url) {
+export default function filterCollection(params = {}) {
   let datasets = cube.link.item;
 
 	// Filter datasets by topic OR sub-topic
@@ -116,7 +116,7 @@ export default function filterCollection(params = {}, url) {
 
 	// Return only CSVW metadata, if requested
 	if (params.format === "csvw") {
-		const metadata = toCSVW(datasets, params.measure, url);
+		const metadata = toCSVW(datasets, params.measure, params.href);
 		return {format: "json", data: metadata};
 	}
 

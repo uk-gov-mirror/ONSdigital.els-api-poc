@@ -16,8 +16,9 @@ export function GET({ params, url }) {
 		indicator,
 		geo,
 		time,
-		measure
-	}, url);
+		measure,
+		href: url.href
+	});
   if (datasets.error) error(datasets.error, datasets.message);
 
 	return datasets.format === "text" ? text(datasets.data) : json(datasets.data);
