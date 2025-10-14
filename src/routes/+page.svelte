@@ -41,6 +41,9 @@
   <Card title="Formats and units" mode="featured" href="{base}/formats">
     Adding automatic units, dates and descriptions to data.
   </Card>
+    <Card title="Population pyramids" mode="featured" href="{base}/pyramid">
+    Options for displaying population by age and sex data.
+  </Card>
 </Grid>
 
 <Grid title="Redundant demos" colWidth="medium">
