@@ -29,6 +29,7 @@
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "@turf/boolean-point-in-polygon": "^7.2.0",
     "@turf/meta": "^7.2.0",
+    "arquero": "^8.0.3",
     "cross-env": "^7.0.3",
     "d3-dsv": "^3.0.1",
     "d3-format": "^3.1.0",
@@ -42,13 +43,12 @@
     "topojson-client": "^3.1.0",
     "topojson-server": "^3.0.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.2",
     "vite": "^5.4.4"
   },
   "dependencies": {
-    "arquero": "^8.0.3",
-    "sirv-cli": "^1.0.0",
-    "tsx": "^4.20.6"
+    "sirv-cli": "^1.0.0"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "4.6.1"
