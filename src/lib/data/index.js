@@ -12,9 +12,12 @@ const cache = {};
 export default async function(key) {
   key = key.split(".")[0];
   if (cache[key]) return cache[key];
+
   const path = `./${key}.json`;
   if (!files[path]) return {error: 404, message: "File not found"};
-  const data = await (read(files[path])).json();
+
+  const asset = read(files[path]);
+  const data = await asset.json();
   cache[key] = data;
   return data;
 }
