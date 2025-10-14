@@ -1,11 +1,9 @@
-import { readFileSync } from "fs";
-import { join } from "path";
+import { read } from "$app/server";
 
 // Make Vite import the JSON files in this directory into the build
 const files = import.meta.glob("./*.json", {
   query: "?url",
-  import: "default",
-  eager: true,
+  import: "default"
 });
 
 // Read a JSON data file from disk or return cached version
@@ -14,12 +12,13 @@ export default async function(key) {
   key = key.split(".")[0];
   if (cache[key]) return cache[key];
 
-  const path = `./${key}.json`;
-  if (!files[path]) return {error: 404, message: "File not found"};
+  const file = `./${key}.json`;
+  if (!files[file]) return {error: 404, message: "File not found"};
 
-  return {path: join(process.cwd(), files[path])};
-
-  const data = JSON.parse(readFileSync(join(process.cwd(), files[path])));
+  const path = await files[file]();
+  const asset = read(path);
+  const data = await asset.json();
   cache[key] = data;
+
   return data;
 }
