@@ -1,5 +1,8 @@
 /** @type {import('@sveltejs/kit').Config} */
-import adapter from '@sveltejs/adapter-node';
+import adapter_node from '@sveltejs/adapter-node';
+import adapter_netlify from '@sveltejs/adapter-netlify';
+
+const adapter = !!process.env.NETLIFY ? adapter_netlify : adapter_node;
 
 const config = {
 	kit: {
