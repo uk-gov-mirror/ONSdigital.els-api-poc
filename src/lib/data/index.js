@@ -14,7 +14,7 @@ export default async function(key) {
   if (cache[key]) return cache[key];
   const path = `./${key}.json`;
   if (!files[path]) return {error: 404, message: "File not found"};
-  const data = await (read(files[path])).json();
+  const data = await (read(files[path])).text();
   cache[key] = data;
   return data;
 }

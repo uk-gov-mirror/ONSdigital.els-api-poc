@@ -1,9 +1,9 @@
-import { json, error } from "@sveltejs/kit";
+import { text } from "@sveltejs/kit";
 import readData from "$lib/data";
 
 export async function GET({ params }) {
   const file = params.file;
 
   const data = await readData(file);
-  return json(data);
+  return text(data);
 }
