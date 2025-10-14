@@ -1,5 +1,4 @@
 import { resolve } from "$app/paths";
-import metadata from "$lib/data/metadata.json";
 
 export function parseData(data) {
   const cols = Object.keys(data);
