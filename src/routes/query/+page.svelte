@@ -17,51 +17,47 @@
     NavSection,
     Divider
   } from "@onsvisual/svelte-components";
-  import metadata from "$lib/data/metadata.json";
   import { geoLevels } from "$lib/config/geo-levels.js";
   import measures from "$lib/config/measures.js";
   import topics from "$lib/config/topics.js";
 
-  const indicators = Object.values(metadata);
+  let { data } = $props();
+
   const indicatorsList = [
     {id: "all", label: "All indicators"},
     {id: "topic", label: "Select by topic"},
-    ...indicators.map(ind => ({id: ind.code, label: ind.metadata.label})).sort((a, b) => a.label.localeCompare(b.label))
+    ...data.indicators.map(ind => ({id: ind.key, label: ind.label})).sort((a, b) => a.label.localeCompare(b.label))
   ];
-  let indicator = indicatorsList[2];
+  let indicator = $state(indicatorsList[2]);
 
-  let topic = topics[0];
+  let topic = $state(topics[0]);
 
   const geographyList = [
     {id: "all", label: "All geographies"},
     {id: "code", label: "Enter a GSS code"},
     ...Object.keys(geoLevels).map(key => ({id: key, label: geoLevels[key].label}))
   ];
-  let geography = geographyList[0];
-  let gssCode = "K02000001";
+  let geography = $state(geographyList[0]);
+  let gssCode = $state("K02000001");
 
-  const years = Array.from(new Set(indicators.map(ind => ind.years).flat()))
-    .filter(d => Math.floor(d) === d)
-    .sort((a, b) => a - b);
-  const yearsList = [{id: "all", label: "All years"}, ...years.map(y => ({id: y, label: y})).reverse()];
-  let year = yearsList[0];
+  const yearsList = [{id: "all", label: "All years"}, ...data.years.map(y => ({id: y, label: y})).reverse()];
+  let year = $state(yearsList[0]);
 
-  let measure = measures[0];
-
-  let data;
-  let startFetch;
+  let measure = $state(measures[0]);
+  let datasets = $state();
+  let startFetch = $state();
 
   async function getData(permalink) {
     startFetch = new Date();
-    data = await (await fetch(permalink)).json();
+    datasets = await (await fetch(permalink)).json();
   }
 
-  function parseData(data) {
-    const parsedData = [];
+  function parseData(datasets) {
+    const parsedDatasets = [];
 
-    for (const ind of Object.keys(data)) {
-      const obj = {id: ind, label: metadata[ind].metadata.label, values: []};
-      const dat = data[ind];
+    for (const ind of Object.keys(datasets)) {
+      const obj = {id: ind, label: indicatorsList.find(item => item.id === ind).label, values: []};
+      const dat = datasets[ind];
       const cols = Object.keys(dat);
 
       for (let i = 0; i < dat[cols[0]].length; i ++) {
@@ -69,16 +65,16 @@
         for (const col of cols) row[col] = dat[col][i];
         obj.values.push(row);
       }
-      parsedData.push(obj);
+      parsedDatasets.push(obj);
     }
-    return parsedData;
+    return parsedDatasets;
   }
 
-  $: permalink = (format = "json") => `${page.url.origin}${base}/api/v0/data.${format}?${
+  let permalink = $derived.by(() => (format = "json") => `${page.url.origin}${base}/api/v0/data.${format}?${
       indicator.id === "topic" ? `topic=${topic.id}` : `indicator=${indicator.id}`
     }&geography=${
       geography.id === "code" ? gssCode : geography.id
-    }&time=${year.id}${year.id !== "all" ? "latest" : ""}&measure=${measure.id}`;
+    }&time=${year.id}${year.id !== "all" ? "latest" : ""}&measure=${measure.id}`);
 </script>
 
 <PhaseBanner phase="prototype"/>
@@ -110,12 +106,12 @@
   <Button small href={permalink("csv")} name="datadownload.json">Download CSV</Button>
 </Section>
 
-{#if data}
+{#if datasets}
   <Divider/>
-  {#key data}
-    <Section marginTop="{true}">Data returned by API in {((new Date()) - startFetch) / 1000} seconds.</Section>
+  {#key datasets}
+    <Section marginTop={true}>Data returned by API in {((new Date()) - startFetch) / 1000} seconds.</Section>
     <NavSections>
-        {#each parseData(data) as ind}
+        {#each parseData(datasets) as ind}
           <NavSection title={ind.label}>
             {#if ind.values[0]}
               <Table compact height={300} data={ind.values}/>
