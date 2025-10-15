@@ -20,7 +20,7 @@ export default async function(key) {
 
   let data;
   if (process.env.IS_NETLIFY) {
-    const file = readFileSync(join(process.cwd(), "src/lib/data", path));
+    const file = readFileSync(join(process.cwd(), `src/lib/data/${key}.json`));
     data = JSON.parse(file);
   } else {
     const file = read(files[path]);
