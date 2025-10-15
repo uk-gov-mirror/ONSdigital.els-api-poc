@@ -1,7 +1,7 @@
 import { read } from "$app/server";
 
 // Make Vite import the JSON files in this directory into the build
-export const files = import.meta.glob("./*.json", {
+export const files = import.meta.glob("$lib/data/*.json", {
   query: "?url",
   import: "default",
   eager: true
