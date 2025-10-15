@@ -11,14 +11,13 @@ export function parseData(data) {
     row.areanm = areaLookup[row.areacd].areanm;
     rows.push(row);
   }
-  console.log(rows)
   return rows;
 }
 
 export async function fetchChartData(indicator, geography = "ltla", time = "latest") {
   const url = resolve(`/api/v0/data.json?indicator=${indicator}&geo=${geography}&time=${time}`);
   const data = await (await fetch(url)).json();
-  console.log({ data })
+  // console.log({ data })
   return parseData(data[indicator]);
 }
 
