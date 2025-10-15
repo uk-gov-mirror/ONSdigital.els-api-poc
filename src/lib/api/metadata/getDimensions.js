@@ -1,5 +1,7 @@
-import rawMetadata from "$lib/data/json-stat.json";
 import { formatDimension } from "./helpers/formatMetadata";
+import readData from "$lib/data";
+
+const rawMetadata = await readData("json-stat");
 
 export default function getDimensions(params = {}) {
   // Get relevant indicator from all metadata

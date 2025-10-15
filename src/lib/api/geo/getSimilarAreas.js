@@ -1,7 +1,9 @@
-import areasClusters from "$lib/data/areas-clusters.json";
-import areasSimilar from "$lib/data/areas-similar.json";
 import { isValidAreaCode } from "../utils.js";
 import { addAreaNames } from "./helpers/areaCodesNames.js";
+import readData from "$lib/data";
+
+const areasClusters = await readData("areas-clusters");
+const areasSimilar = await readData("areas-similar");
 
 export default function getSimilarAreas(params = {}) {
   const cdUpper = (params?.code || "").toUpperCase();

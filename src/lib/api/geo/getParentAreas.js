@@ -1,6 +1,8 @@
-import geoMetadata from "$lib/data/geo-metadata.json";
 import { isValidAreaCode } from "../utils.js";
 import { addAreaNames } from "./helpers/areaCodesNames.js";
+import readData from "$lib/data";
+
+const geoMetadata = await readData("geo-metadata");
 
 export default function getParentAreas(params = {}) {
   const cdUpper = (params?.code || "").toUpperCase();

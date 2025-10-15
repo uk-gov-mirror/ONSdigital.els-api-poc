@@ -1,8 +1,10 @@
 
-import cube from "$lib/data/json-stat.json";
 import filterAllDatasets from "./filterAllDatasets.js";
 import { makeFilter, makeGeoFilter } from "./helpers/dataFilters.js";
 import { toCSVW, csvSerialise } from "./helpers/dataFormatters.js";
+import readData from "$lib/data";
+
+const cube = await readData("json-stat");
 
 export default function filterCollection(params = {}) {
   let datasets = cube.link.item;

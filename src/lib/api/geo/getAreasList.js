@@ -1,8 +1,9 @@
-import geoMetadata from "$lib/data/geo-metadata.json";
 import { makeAreaListFilter } from "./helpers/geoFilters.js";
 import groupAreasByLevel from "./helpers/groupAreasByLevel.js";
 import makeAreasLookup from "./helpers/makeAreasLookup.js";
+import readData from "$lib/data";
 
+const geoMetadata = await readData("geo-metadata");
 const geoArray = Object.values(geoMetadata);
 const latestYear = Math.max(...geoArray.map((d) => d.start || 0));
 

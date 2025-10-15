@@ -1,8 +1,10 @@
-import geoMetadata from "$lib/data/geo-metadata.json";
 import { geoLevels, geoLevelsLookup } from "$lib/config/geo-levels.js";
 import getChildAreas from "./getChildAreas.js";
 import { isValidAreaCode } from "../utils.js";
 import { codeToArea } from "./helpers/areaCodesNames.js";
+import readData from "$lib/data";
+
+const geoMetadata = await readData("geo-metadata");
 
 export default function getSiblingAreas(params = {}) {
   const cdUpper = (params?.code || "").toUpperCase();

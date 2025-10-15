@@ -4,7 +4,9 @@ import { areaTilesBase } from "../config.js";
 import { isValidLngLat } from "../utils.js";
 import groupAreasByLevel from "./helpers/groupAreasByLevel.js";
 import { geoYearFilter, makeGeoLevelFilter } from "./helpers/geoFilters.js";
-import geoLatestYear from "$lib/data/geo-latest-year.json";
+import readData from "$lib/data";
+
+const geoLatestYear = await readData("geo-latest-year");
 
 function makeArea(props) {
   return {areacd: props.areacd, areanm: props.areanm};

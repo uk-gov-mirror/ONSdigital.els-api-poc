@@ -1,10 +1,12 @@
-import geoMetadata from "$lib/data/geo-metadata.json";
 import { geoLevelsLookup } from "$lib/config/geo-levels.js";
 import getChildAreas from "./getChildAreas.js";
 import getParentAreas from "./getParentAreas.js";
 import getSiblingAreas from "./getSiblingAreas.js";
 import getSimilarAreas from "./getSimilarAreas.js";
 import { isValidAreaCode } from "../utils.js";
+import readData from "$lib/data";
+
+const geoMetadata = await readData("geo-metadata");
 
 export default function getRelatedAreas(params = {}) {
   const cdUpper = (params?.code || "").toUpperCase();

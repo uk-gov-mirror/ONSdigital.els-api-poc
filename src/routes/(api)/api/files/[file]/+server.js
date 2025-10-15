@@ -1,9 +1,12 @@
-import { json } from "@sveltejs/kit";
-import readData from "$lib/data";
+import { read } from "$app/server";
+import { error } from "@sveltejs/kit";
+import { files, paths } from "$lib/data";
 
 export async function GET({ params }) {
   const file = params.file;
 
-  const data = await readData(file);
-  return json(data);
+  const path = paths.find(p => p.endsWith(`/${file}`));
+  if (!path) error(404, "File not found");
+
+  return read(files[path]);
 }
