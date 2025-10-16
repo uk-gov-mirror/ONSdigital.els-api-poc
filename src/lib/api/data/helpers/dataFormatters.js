@@ -75,7 +75,7 @@ export function toRows(cube, dims) {
 	return rows;
 }
 
-export function toJSON(cube, dims) {
+export function toCols(cube, dims) {
 	const measures = dims[dims.length - 1];
 	const measuresLength = measures.values.length;
 

@@ -1,5 +1,5 @@
 import { filterTime } from "./helpers/dataFilters.js";
-import { toJSONStat, toRows, toJSON } from "./helpers/dataFormatters.js";
+import { toJSONStat, toRows, toCols } from "./helpers/dataFormatters.js";
 
 export default function filterDataset(cube, filters, format) {
 	const dims = [];
@@ -21,7 +21,7 @@ export default function filterDataset(cube, filters, format) {
 	const length = dims.map(dim => dim.values.length).reduce((a, b) => a * b, 1);
 	if (length === 0) return null;
 
-	if (format === "json") return toJSON(cube, dims);
+	if (format === "cols") return toCols(cube, dims);
 	if (format === "csv") return toRows(cube, dims);
 	return toJSONStat(cube, dims);
 }

@@ -3,7 +3,7 @@ import { getParam } from "$lib/api/utils.js";
 import filterCollection from "$lib/api/data/filterCollection.js";
 
 export function GET({ params, url }) {
-  const format = params.format || "json";
+  const format = params.format || "cols";
   const topic = getParam(url, "topic", "all");
   const indicator = getParam(url, "indicator", "all");
   const geo = getParam	(url, "geo", "all");

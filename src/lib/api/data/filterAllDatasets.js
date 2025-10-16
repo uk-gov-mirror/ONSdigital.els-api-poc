@@ -7,7 +7,7 @@ export default function filterAllDatasets(datasets, params, format) {
     if (data) filtered.push(data);
   }
   if (format === "csv") return filtered;
-  if (format === "json") return Object.fromEntries(filtered);
+  if (format === "cols") return Object.fromEntries(filtered);
   return {
     version: "2.0",
     class: "collection",
