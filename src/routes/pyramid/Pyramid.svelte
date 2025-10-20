@@ -1,58 +1,62 @@
 <script>
-	
-	import PyramidChart from "./PyramidChart.svelte";
+  import PyramidChart from "./PyramidChart.svelte";
 
-	let { 
-		data,
-		selectedArea = "E06000002"
-	} = $props();
+  export let data;
+  export let selectedArea;
+  export let groupKey = "areacd";
+  import { colours } from "$lib/config.js";
 
-	// export let selectedArea = "E06000002";
+  function doSelect(cd) {
+    selectedArea = cd;
+  }
+  function keyData(data, groupKey) {
+    const keyedData = {};
 
-	function doSelect(cd) {
-		selectedArea = cd;
-	}
-
-	let rectWidth = $derived(selectedArea ? selectedArea.length * 10 + 20 : 0);
-	
+    for (const d of data) {
+      if (!keyedData[d[groupKey]]) keyedData[d[groupKey]] = [];
+      keyedData[d[groupKey]].push(d);
+    }
+    return keyedData;
+  }
+  const keyedData = keyData(data, groupKey);
 </script>
 
 <svelte:head>
-	<link
-		href="https://fonts.googleapis.com/css?family=Open Sans"
-		rel="stylesheet"
-	/>
+  <link
+    href="https://fonts.googleapis.com/css?family=Open Sans"
+    rel="stylesheet"
+  />
 </svelte:head>
 
-<!-- Selected: {selectedArea}<br/>
-Hovered: {hoveredArea} -->
+<ul class="selected-labels">
+  {#if selectedArea.length}
+    {#each selectedArea as a, i}
+      <li
+        class="label"
+        style="background:{colours[
+          i
+        ]}; color:white; font-size:18px; font-weight:bold"
+      >
+        {keyedData[a]?.[0]?.areanm}
+      </li>
+    {/each}
+  {/if}
+  </ul>
 
-<svg class="label" height="55">
-	{#if selectedArea}
-		<rect class="rect-select" x="0" width={rectWidth} height="40" rx="5">
-		</rect>
-		<text class="text-select" x="10" y="24">
-			{selectedArea}
-		</text>
-	{/if}
-</svg>
-
-<PyramidChart {data} {selectedArea} select={doSelect}  />
+<PyramidChart {data} {keyedData} {selectedArea} select={doSelect} />
 
 <style>
-	.rect-select {
-		fill: #206095;
-	}
-
-	.rect-hover {
-		fill: #f39431;
-	}
-
-	.text-select {
-		fill: white;
-		font-size: 18px;
-		font-family: "Open Sans";
-		text-anchor: start;
-		font-weight: bold;
-	}
+  .selected-labels {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+    min-height: 40px;
+  }
+  .label {
+    display: inline-block;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    margin: 0.2rem;
+  }
 </style>
+

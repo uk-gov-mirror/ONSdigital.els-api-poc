@@ -17,12 +17,23 @@
   import Pyramid from "./Pyramid.svelte";
   import BarcodeJoined from "./BarcodeJoined.svelte";
 
-  let { data } = $props()
+  let { data } = $props();
 
-  // let selected = 'E06000002';
-  // Select is returning the object, not just the areacd string
-  let selectedObj = $state(data.areaList2023.find((d) => d.areacd === "E06000002"));
-  let selected = $derived(selectedObj ? selectedObj.areacd : null);
+  let activeItem = $state();
+  let selected = $state([]);
+  console.log({activeItem})
+  $inspect(selected)
+
+  function selectItem(e) {
+    e.preventDefault();
+
+    if (!selected.find((item) => item === activeItem))
+      selected.push(activeItem.areacd);
+  }
+
+  function removeItem(item) {
+    selected = selected.filter((i) => i !== item);
+  }
 </script>
 
 <Header title="Population pyramid" compact={true} />
@@ -33,22 +44,29 @@
       Select an area to highlight on the population pyramid. (NB Scotland and
       Northern Ireland population data not yet available.)
     </p>
-    <form
-      class="select-container"
-      on:submit|preventDefault={() => selectArea(selected)}
-    >
+    <form class="select-container" on:submit={selectItem}>
       <Select
         options={data.areaList2023}
-        bind:value={selectedObj}
+        bind:value={activeItem}
         labelKey="areanm"
         label="Select a local authority"
         placeholder="Eg. Fareham or Newport"
       />
-      <!-- <Button small type="submit">Select area</Button> -->
+      <Button small type="submit">Select area</Button>
     </form>
-  </Section>
+    
+    {#each selected as s}
+      <Button
+        small="true"
+        variant="secondary"
+        on:click={() => removeItem(s)}>
+        {s} X
+      </Button>
+    {/each}
+ 
+</Section>
 
-  <Section
+  <!-- <Section
     title="Population by age and sex: barcode original"
     marginTop={true}
     width="medium"
@@ -63,7 +81,7 @@
     {:catch}
       Failed to load chart data
     {/await}
-  </Section>
+  </Section> -->
 
   <Section
     title="Population by age and sex: barcode joined lines"

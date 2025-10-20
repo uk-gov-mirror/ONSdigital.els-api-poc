@@ -1,7 +1,7 @@
 <script>
   import { scaleLinear, scaleBand } from "d3-scale";
+  import { colours } from "$lib/config.js";
 
-  export let data;
   export let barHeight = 35;
   export let gutter = 70;
   export let bottomMargin = 20;
@@ -9,28 +9,19 @@
   export let yKey = "age";
   export let zKey = "sex";
   export let groupKey = "areacd";
-  export let selectedArea = "E06000002";
-  export let comparisonArea = "E06000003";
+  export let selectedArea = [];
+  export let keyedData;
+  export let data;
   let w = 400;
 
-  function keyData(data, groupKey) {
-    const keyedData = {};
-
-    for (const d of data) {
-      if (!keyedData[d[groupKey]]) keyedData[d[groupKey]] = [];
-      keyedData[d[groupKey]].push(d);
-    }
-    return keyedData;
-  }
-
-  const xDomain = [0, Math.max(...data.map((d) => d[xKey]))];
   $: xRangeMax = (w - gutter) / 2;
   $: xRange = [0, xRangeMax];
   $: xScale = scaleLinear().domain(xDomain).range(xRange);
   $: xTicks = [0, 4, 8];
 
-  // create yDomain using all data to ensure axes match between simple and advanced view
+  const xDomain = [0, Math.max(...data.map((d) => d[xKey]))];
   const yDomain = Array.from(new Set(data.map((d) => d[yKey])));
+  const zDomain = ["Female", "Male"];
   const yMax = barHeight * yDomain.length;
   const yRange = [yMax, 0];
   const barGap = 1; // actual size of barGap in pixels
@@ -40,13 +31,8 @@
     .range(yRange)
     .paddingInner(barGapScale);
 
-  const zDomain = ["Female", "Male"];
-
-  const keyedData = keyData(data, groupKey);
-
   function sumBySex(area) {
-    const filtered = data.filter((d) => d.areacd === area);
-    if (filtered.length === 0) return null;
+    const filtered = keyedData[area] || [];
     return {
       Male: filtered
         .filter((d) => d.sex === "Male")
@@ -156,10 +142,10 @@
           stroke-width="1.5px"
         />
       </g>
-      {#if keyedData[selectedArea]}
+      {#if selectedArea.length}
         <g class="chart-selected">
-          {#each keyedData[selectedArea] as d}
-            <!-- draw bars for females -->
+          <!-- primary bars -->
+           {#each keyedData[selectedArea[0]] as d}
             {#if d[zKey] === zDomain[0]}
               <rect
                 class="chart-rect"
@@ -168,7 +154,6 @@
                 width={xScale(d[xKey])}
                 height={yScale.bandwidth()}
               />
-              <!-- draw bars for males -->
             {:else if d[zKey] === zDomain[1]}
               <rect
                 class="chart-rect"
@@ -178,58 +163,43 @@
                 height={yScale.bandwidth()}
               />
             {/if}
+            {/each}
+            <!-- non-primary selected lines -->
+          {#each selectedArea.slice(1) as a, i}
+              <polyline
+                points={calculateFemalePoints(a, xScale)}
+                fill="none"
+                stroke={colours[i + 1]}
+                stroke-width={2.5}
+              />
+              <polyline
+                points={calculateMalePoints(a, xScale)}
+                fill="none"
+                stroke={colours[i + 1]}
+                stroke-width={2.5}
+              />
           {/each}
-          <!-- draw line/border for selected area -->
-          <polyline
-            class="chart-line"
-            points={calculateFemalePoints(selectedArea, xScale)}
-            fill="none"
-          />
-          <polyline
-            class="chart-line"
-            points={calculateMalePoints(selectedArea, xScale)}
-            fill="none"
-          />
+            <!-- primary lines -->
+            <polyline
+              points={calculateFemalePoints(selectedArea[0], xScale)}
+              fill="none"
+              stroke={colours[0]}
+              stroke-width={4.5}
+            />
+            <polyline
+              points={calculateMalePoints(selectedArea[0], xScale)}
+              fill="none"
+              stroke={colours[0]}
+              stroke-width={4.5}
+            />
+          
         </g>
       {/if}
 
-      <!-- add comparion area -->
-      {#if keyedData[comparisonArea]}
-        <g class="chart-comparison">
-          <!-- draw line/border for selected area -->
-          <polyline
-            class="chart-line outline"
-            points={calculateFemalePoints(comparisonArea, xScale)}
-            fill="none"
-          />
-          <polyline
-            class="chart-line"
-            points={calculateFemalePoints(comparisonArea, xScale)}
-            fill="none"
-          />
-          <polyline
-            class="chart-line outline"
-            points={calculateMalePoints(comparisonArea, xScale)}
-            fill="none"
-          />
-          <polyline
-            class="chart-line"
-            points={calculateMalePoints(comparisonArea, xScale)}
-            fill="none"
-          />
-        </g>
-      {/if}
       <!-- add x axis  -->
 
       <g class="chart-x-axis" transform={`translate(0, ${yMax + 5})`}>
         {#each xTicks as tick}
-          <!-- <line
-			x1={xScale(tick) + xRangeMax + gutter}
-			y1={0}
-			x2={xScale(tick) + xRangeMax + gutter}
-			y2={5}
-			stroke="black"
-		/> -->
           <text
             x={xScale(tick) + xRangeMax + gutter}
             y={20}
@@ -238,14 +208,6 @@
           >
             {tick}%
           </text>
-
-          <!-- <line
-			x1={xRangeMax - xScale(tick)}
-			y1={0}
-			x2={xRangeMax - xScale(tick)}
-			y2={5}
-			stroke="black"
-		/> -->
           <text
             x={xRangeMax - xScale(tick)}
             y={20}
@@ -283,18 +245,6 @@
     font-size: 14px;
   }
 
-  .chart-selected > polyline {
-    stroke: #206095;
-    stroke-width: 3;
-  }
-  .chart-selected > line {
-    stroke: #206095;
-    stroke-width: 3;
-  }
-  .chart-comparison > polyline {
-    stroke: #746cb1;
-    stroke-width: 2;
-  }
   .chart-comparison .outline {
     stroke: white;
     stroke-width: 5;
