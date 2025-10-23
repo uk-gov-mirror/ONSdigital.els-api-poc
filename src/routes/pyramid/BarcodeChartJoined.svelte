@@ -46,7 +46,7 @@
     };
   }
 
-  $: sums = sumBySex(selectedArea);
+  $: sums = hoveredArea ? sumBySex(hoveredArea) : selectedArea.length === 1 ? sumBySex(selectedArea) :  null;
 
   function calculateFemalePoints(area, xScale) {
     const data = keyedData[area];
@@ -196,30 +196,54 @@
       {:else if selectedArea.length}
         <g class="chart-selected">
           {#each selectedArea.slice(1) as a, i}
+          <polyline
+                points={calculateFemalePoints(a, xScale)}
+                fill="none"
+                stroke='white'
+                stroke-width={4}
+              />
+              <polyline
+                points={calculateMalePoints(a, xScale)}
+                fill="none"
+                stroke="white"
+                stroke-width={4}
+              />
               <polyline
                 points={calculateFemalePoints(a, xScale)}
                 fill="none"
                 stroke={colours[i + 1]}
-                stroke-width={2.5}
+                stroke-width={2}
               />
               <polyline
                 points={calculateMalePoints(a, xScale)}
                 fill="none"
                 stroke={colours[i + 1]}
-                stroke-width={2.5}
+                stroke-width={2}
               />
           {/each}
           <polyline
               points={calculateFemalePoints(selectedArea[0], xScale)}
               fill="none"
+              stroke="white"
+              stroke-width={6}
+            />
+            <polyline
+              points={calculateMalePoints(selectedArea[0], xScale)}
+              fill="none"
+              stroke="white"
+              stroke-width={6}
+            />
+          <polyline
+              points={calculateFemalePoints(selectedArea[0], xScale)}
+              fill="none"
               stroke={colours[0]}
-              stroke-width={4.5}
+              stroke-width={3}
             />
             <polyline
               points={calculateMalePoints(selectedArea[0], xScale)}
               fill="none"
               stroke={colours[0]}
-              stroke-width={4.5}
+              stroke-width={3}
             />
         </g>
       {/if}

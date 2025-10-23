@@ -20,7 +20,7 @@
   let { data } = $props();
 
   let activeItem = $state();
-  let selected = $state([]);
+  let selected = $state(['E06000001']);
   console.log({activeItem})
   $inspect(selected)
 
@@ -88,7 +88,7 @@
     marginTop={true}
     width="medium"
   >
-    {#await fetchChartData("population-by-age-and-sex", "ltla", "latest")}
+    {#await fetchChartData("population-by-age-and-sex", "ltla", 2023)}
       Fetching chart data
     {:then chartData}
       <BarcodeJoined
@@ -105,7 +105,7 @@
     marginTop={true}
     width="medium"
   >
-    {#await fetchChartData("population-by-age-and-sex", "ltla", "latest")}
+    {#await fetchChartData("population-by-age-and-sex", "ltla", 2023)}
       Fetching chart data
     {:then chartData}
       <Pyramid
