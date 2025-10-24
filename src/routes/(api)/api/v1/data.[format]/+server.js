@@ -6,8 +6,10 @@ export function GET({ params, url }) {
   const format = params.format || "cols";
   const topic = getParam(url, "topic", "all");
   const indicator = getParam(url, "indicator", "all");
-  const geo = getParam	(url, "geo", "all");
+  const geo = getParam(url, "geo", "all");
+  const geoExtent = getParam(url, "geoExtent", "all");
   const time = getParam(url, "time", "latest");
+  const timeNearest = getParam(url, "timeNearest", "none");
   const measure = getParam(url, "measure", "all");
 
 	const datasets = filterCollection({
@@ -15,7 +17,9 @@ export function GET({ params, url }) {
 		topic,
 		indicator,
 		geo,
+		geoExtent,
 		time,
+		timeNearest,
 		measure,
 		href: url.href
 	});

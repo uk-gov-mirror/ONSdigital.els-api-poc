@@ -1,4 +1,5 @@
 import { geoLevels } from "$lib/config/geo-levels.js";
+import getChildAreas from "$lib/api/geo/getChildAreas.js";
 
 export function ascending(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -9,15 +10,20 @@ export function makeFilter(param) {
   return d => set.has(d[0]);
 }
 
-export function makeGeoFilter(param) {
+export function makeGeoFilter(geo, geoExtent) {
   const codes = new Set();
   const types = new Set();
-  for (const geo of [param].flat()) {
-    if (geo.match(/^[EKNSW]\d{2}$/)) types.add(geo);
-    else if (geoLevels[geo]) {
-      for (const code of geoLevels[geo].codes) types.add(code);
+  for (const g of [geo].flat()) {
+    // if (g.match(/^[EKNSW]\d{2}$/)) types.add(g);
+    if (geoLevels[g]) {
+			if (geoExtent.match(/^[EKNSW]\d{8}$/)) {
+				const children = getChildAreas({code: geoExtent, geoLevel: g, includeNames: false});
+				for (const child of children) codes.add(child);
+			} else {
+				for (const code of geoLevels[g].codes) types.add(code);
+			}
     }
-    else if (geo.match(/^[EKNSW]\d{8}$/) && !types.has(geo.slice(0, 3))) codes.add(geo);
+    else if (g.match(/^[EKNSW]\d{8}$/) && !types.has(g.slice(0, 3))) codes.add(g);
   }
   return codes.size > 0 && types.size > 0 ? d => codes.has(d[0]) || types.has(d[0].slice(0, 3)) :
     types.size > 0 ? d => types.has(d[0].slice(0, 3)) :
