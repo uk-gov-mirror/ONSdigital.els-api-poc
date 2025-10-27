@@ -1,6 +1,4 @@
-export function getParam(url, key, fallback = undefined) {
-  const param = url.searchParams.get(key);
-  if (!param) return fallback;
+function formatParam(param) {
   return param === "true"
     ? true
     : param === "false"
@@ -10,6 +8,18 @@ export function getParam(url, key, fallback = undefined) {
         : param.match(/^-?\d+(\.\d+)?$/)
           ? +param
           : param;
+}
+
+export function getParam(url, key, fallback = undefined) {
+  const param = url.searchParams.get(key);
+  if (!param) return fallback;
+  return formatParam(param);
+}
+
+export function getDimensionFilters(url) {
+  const params = [...url.searchParams].filter(p => p[0].startsWith("dimension_"));
+  if (params.length === 0) return [];
+  return params.map(p => ({key: p[0].slice(10), values: formatParam(p[1])}));
 }
 
 export function isValidAreaCode(code) {

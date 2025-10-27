@@ -1,5 +1,5 @@
 import { json, text } from "@sveltejs/kit";
-import { getParam } from "$lib/api/utils.js";
+import { getParam, getDimensionFilters } from "$lib/api/utils.js";
 import filterCollection from "$lib/api/data/filterCollection.js";
 
 export function GET({ params, url }) {
@@ -11,6 +11,7 @@ export function GET({ params, url }) {
   const time = getParam(url, "time", "latest");
   const timeNearest = getParam(url, "timeNearest", "none");
   const measure = getParam(url, "measure", "all");
+	const dimFilters = getDimensionFilters(url);
 
 	const datasets = filterCollection({
 		format,
@@ -21,6 +22,7 @@ export function GET({ params, url }) {
 		time,
 		timeNearest,
 		measure,
+		dimFilters,
 		href: url.href
 	});
   if (datasets.error) error(datasets.error, datasets.message);

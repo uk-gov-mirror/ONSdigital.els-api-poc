@@ -9,7 +9,7 @@ const cube = await readData("json-stat");
 export default function filterCollection(params = {}) {
   let datasets = cube.link.item;
 
-	// Filter datasets by indicator, and by topic OR sub-topic
+	// Filter datasets by indicator, and by topic OR sub-topic (additive)
 	const topicFilter = params.topic === "all" ? () => true : (d) => [params.topic].flat().some(t => [d.extension.topic, d.extension.subTopic].includes(t));
 	const indicatorFilter = params.indicator === "all" ? () => true : (d) => [params.indicator].flat().includes(d.extension.slug);
 	const combinedFilter = ![params.topic, params.indicator].includes("all") ? (d) => topicFilter(d) || indicatorFilter(d) : (d) => topicFilter(d) && indicatorFilter(d);
@@ -21,11 +21,16 @@ export default function filterCollection(params = {}) {
 		return {format: "json", data: metadata};
 	}
 
-	// Create filters for data cube dimensions
+	// Create filters for standard dimensions
 	const filters = {};
 	if (params.geo !== "all") filters.areacd = makeGeoFilter(params.geo, params.geoExtent);
 	if (params.time !== "all") filters.period = params.time;
 	if (params.measure !== "all") filters.measure = makeFilter(params.measure);
+
+	// Add other dimension filters
+	for (const filter of params.dimFilters) {
+		filters[filter.key] = makeFilter(filter.values);
+	}
 
 	// Apply filters to datasets and generate output for selected format
 	datasets = filterAllDatasets(datasets, filters, params.format);

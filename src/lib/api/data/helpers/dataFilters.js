@@ -31,16 +31,16 @@ export function makeGeoFilter(geo, geoExtent) {
     () => false;
 }
 
-export function filterTime(values, param) {
-	if (param === "latest") return [values[values.length - 1]];
-	if (param === "earliest") return [values[0]];
+export function filterTime(values, params = {}) {
+	if (params.time === "latest") return [values[values.length - 1]];
+	if (params.time === "earliest") return [values[0]];
 	
-	const params = [param].flat();
+	const range = [params.time].flat();
 	const props = {
-		start: params[0].match(/^\d{4}(-\d{2}){0,2}/)?.[0],
-		end: params[params.length - 1].match(/^\d{4}(-\d{2}){0,2}/)?.[0],
-		earliest: params[0].endsWith("earliest"),
-		latest: params[params.length - 1].endsWith("latest")
+		start: range[0].match(/^\d{4}(-\d{2}){0,2}/)?.[0],
+		end: range[range.length - 1].match(/^\d{4}(-\d{2}){0,2}/)?.[0],
+		earliest: range[0].endsWith("earliest"),
+		latest: range[range.length - 1].endsWith("latest")
 	};
 	if (!props.start && !props.end && !props.earliest && !props.latest) return [];
 

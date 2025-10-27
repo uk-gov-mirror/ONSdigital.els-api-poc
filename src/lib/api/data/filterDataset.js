@@ -13,7 +13,7 @@ export default function filterDataset(cube, filters, format) {
 		};
 		const filter = filters[key];
 		if (filter && dim.key === "period") {
-			dim.values = filterTime(dim.values, filter);
+			dim.values = filterTime(dim.values, {time: filter});
 		}
 		else if (filter) dim.values = dim.values.filter(filter);
 		dims.push(dim);
