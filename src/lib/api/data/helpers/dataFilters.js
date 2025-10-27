@@ -1,5 +1,7 @@
+import { Temporal } from "temporal-polyfill";
 import { geoLevels } from "$lib/config/geo-levels.js";
 import getChildAreas from "$lib/api/geo/getChildAreas.js";
+import { isValidMonth, isValidYear } from "$lib/api/utils.js";
 
 export function ascending(a, b) {
   return a == null || b == null ? NaN : a < b ? -1 : a > b ? 1 : a >= b ? 0 : NaN;
@@ -31,49 +33,63 @@ export function makeGeoFilter(geo, geoExtent) {
     () => false;
 }
 
-export function filterTime(values, params = {}) {
+function toPlainDate(str, upperBound = false) {
+	if (isValidYear(str)) return Temporal.PlainDate.from(`${str}-${upperBound ? "12-31" : "01-01"}`);
+	if (isValidMonth(str)) return Temporal.PlainDate.from(`${str}-01`).add({months: 1}).subtract({days: 1});
+	return Temporal.PlainDate.from(str.slice(0, 10));
+}
+
+function periodToDateRange(period) {
+	const parts = period.split("/");
+	const start = Temporal.PlainDate.from(parts[0]);
+	if (!parts[1]) return [start];
+
+	const offset = Temporal.Duration.from(parts[1]);
+	return [start, start.add(offset).subtract({days: 1})];
+}
+
+// Get a single time period
+export function getTime(values, params = {}) {
 	if (params.time === "latest") return [values[values.length - 1]];
 	if (params.time === "earliest") return [values[0]];
-	
-	const range = [params.time].flat();
-	const props = {
-		start: range[0].match(/^\d{4}(-\d{2}){0,2}/)?.[0],
-		end: range[range.length - 1].match(/^\d{4}(-\d{2}){0,2}/)?.[0],
-		earliest: range[0].endsWith("earliest"),
-		latest: range[range.length - 1].endsWith("latest")
-	};
-	if (!props.start && !props.end && !props.earliest && !props.latest) return [];
 
-	const dates = values.map(d => d[0].split("/")[0]);
-	let startIndex;
-	if (!props.start && props.earliest) startIndex = 0;
-	else if (props.start) {
-		props.start = props.start.slice(0, dates[0].length);
-		const startDates = props.start.length < dates[0].length ?
-			dates.map(d => d.slice(0, props.start.length)) :
-			dates;
-		const index = startDates.indexOf(props.start);
-		const indexForce = index === -1 && props.earliest ?
-			[props.start, ...startDates].sort(ascending).indexOf(props.start) :
-			null;
-		startIndex = !indexForce ? index : indexForce && indexForce < dates.length ? indexForce : null;
-	}
-	let endIndex;
-	if (!props.end && props.latest) endIndex = values.length;
-	if (props.end) {
-		props.end = props.end.slice(0, dates[0].length);
-		const endDates = props.end.length < dates[0].length ?
-			dates.map(d => d.slice(0, props.end.length)) :
-			dates;
-		const index = endDates.lastIndexOf(props.end);
-		const indexForce = index === -1 && props.latest ?
-			[...endDates, props.end].sort(ascending).lastIndexOf(props.end) :
-			null;
-		endIndex = !indexForce ? index + 1 : indexForce && indexForce > 0 ? indexForce : null;
-	}
-	if (!Number.isInteger(startIndex) && !Number.isInteger(endIndex)) return [];
-	return values.slice(
-		Number.isInteger(startIndex) ? startIndex : endIndex - 1,
-		Number.isInteger(endIndex) ? endIndex : startIndex + 1
-	);
+	const date = toPlainDate(params.time, true);
+	const periods = values.map(v => ({value: v, period: periodToDateRange(v[0])}));
+	const nearest = params.timeNearest || "none";
+	const isRange = periods[0].period.length > 1;
+
+	let match;
+	if (isRange) match = periods.findLast(p => Temporal.PlainDate.compare(date, p.period[0]) !== -1 && Temporal.PlainDate.compare(date, p.period[1]) !== 1);
+	else match = periods.findLast(p => Temporal.PlainDate.compare(date, p.period[0]) !== -1);
+	if (match) return [match.value];
+
+	if (Temporal.PlainDate.compare(date, periods.slice(-1)[0].period.slice(-1)[0]) === 1 && ["latest", "any"].includes(nearest)) return [periods[periods.length - 1].value];
+	if (Temporal.PlainDate.compare(date, periods[0].period[0]) === -1 && ["earliest", "any"].includes(nearest)) return [periods[0].value];
+	return [];
+}
+
+export function getTimeRange(values, params = {}) {
+	const periods = values.map(v => ({value: v, period: periodToDateRange(v[0])}));
+	const range = [
+		toPlainDate(params.time[0] === "earliest" ? values[0][0] : params.time[0]),
+		toPlainDate(params.time[1] === "latest" ? values[values.length - 1][0] : params.time[1], true)
+	];
+
+	let firstIndex = periods.findIndex(p => Temporal.PlainDate.compare(p.period[0], range[0]) !== -1);
+	let lastIndex = periods.findLastIndex(p => Temporal.PlainDate.compare(p.period[p.period.length - 1], range[1]) !== 1);
+	if (firstIndex === lastIndex === -1) return [];
+	if (firstIndex === -1) firstIndex = 0;
+	if (lastIndex === -1) lastIndex = periods.length - 1;
+
+	return periods.slice(firstIndex, lastIndex + 1).map(p => p.value);
+}
+
+// Get a range of time periods
+export function filterTime(values, params = {}) {
+	if (params.time === "all") return values;
+
+	const range = [params.time].flat();
+	if (range.length === 1) return getTime(values, params);
+
+	return getTimeRange(values, params);
 }

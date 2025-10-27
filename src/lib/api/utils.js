@@ -37,3 +37,19 @@ export function isValidPartialPostcode(code) {
 export function isValidLngLat(lng, lat) {
   return Math.abs(lng) <= 180 && Math.abs(lat) <= 90;
 }
+
+export function isValidYear(str) {
+  return !!`${str}`.match(/^\d{4}$/);
+}
+
+export function isValidMonth(str) {
+  return !!`${str}`.match(/^\d{4}-\d{2}$/);
+}
+
+export function isValidDay(str) {
+  return !!`${str}`.match(/^\d{4}-\d{2}-\d{2}$/);
+}
+
+export function isValidDate(str) {
+  return isValidDay(str) || isValidMonth(str) || isValidYear(str) || ["earliest", "latest"].includes(str);
+}

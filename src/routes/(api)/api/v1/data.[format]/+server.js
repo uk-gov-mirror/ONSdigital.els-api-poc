@@ -1,4 +1,4 @@
-import { json, text } from "@sveltejs/kit";
+import { json, text, error } from "@sveltejs/kit";
 import { getParam, getDimensionFilters } from "$lib/api/utils.js";
 import filterCollection from "$lib/api/data/filterCollection.js";
 

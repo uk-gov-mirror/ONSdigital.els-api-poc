@@ -2,6 +2,7 @@
 import filterAllDatasets from "./filterAllDatasets.js";
 import { makeFilter, makeGeoFilter } from "./helpers/dataFilters.js";
 import { toCSVW, csvSerialise } from "./helpers/dataFormatters.js";
+import { isValidDate } from "$lib/api/utils.js";
 import readData from "$lib/data";
 
 const cube = await readData("json-stat");
@@ -24,7 +25,10 @@ export default function filterCollection(params = {}) {
 	// Create filters for standard dimensions
 	const filters = {};
 	if (params.geo !== "all") filters.areacd = makeGeoFilter(params.geo, params.geoExtent);
-	if (params.time !== "all") filters.period = params.time;
+	if (params.time !== "all") {
+		if ([params.time].flat().map(t => isValidDate(t)).includes(false)) return {error: 400, message: "Invalid time period requested."};
+		filters.period = params.time;
+	}
 	if (params.measure !== "all") filters.measure = makeFilter(params.measure);
 
 	// Add other dimension filters
