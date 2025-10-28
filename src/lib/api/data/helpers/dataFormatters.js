@@ -1,6 +1,6 @@
 import { csvFormat } from "d3-dsv";
 
-function dimsToItems(dims) {
+export function dimsToItems(dims) {
 	let items = [[0]];
 	for (const dim of dims) {
 		const newItems = [];
@@ -56,18 +56,13 @@ export function toJSONStat(qb, dims) {
 	return cube;
 }
 
-export function toRows(cube, dims) {
-	const measures = dims[dims.length - 1];
-	const measuresLength = measures.values.length;
-	if (measuresLength === 0) return [];
-
-	const items = dimsToItems(dims.slice(0, -1));
-
+// Wide format. Includes a separate value column for each measure
+export function itemsToRows(cube, dims, items, measures) {
 	const rows = [];
 	for (const item of items) {
 		const row = {indicator: cube.extension.slug};
 		for (let i = 0; i < dims.length - 1; i ++) row[dims[i].key] = item[i + 1];
-		for (let j = 0; j < measuresLength; j ++) {
+		for (let j = 0; j < measures.values.length; j ++) {
 			row[measures.values[j][0]] = cube.value[(item[0] * measures.count) + measures.values[j][1]]
 		}
 		rows.push(row);
@@ -75,21 +70,47 @@ export function toRows(cube, dims) {
 	return rows;
 }
 
-export function toCols(cube, dims) {
-	const measures = dims[dims.length - 1];
-	const measuresLength = measures.values.length;
+// Long format. Includes a "measure" and a "value" column
+export function itemsToRowsLong(cube, dims, items) {
+	const rows = [];
+	for (const item of items) {
+		const row = {indicator: cube.extension.slug};
+		for (let i = 0; i < dims.length - 1; i ++) row[dims[i].key] = item[i + 1];
+		row.value = cube.value[item[0]];
+		rows.push(row);
+	}
+	return rows;
+}
 
+export function toRows(cube, dims) {
+	const measures = dims[dims.length - 1];
+	if (measures.values.length === 0) return [];
+
+	const items = dimsToItems(dims.slice(0, -1));
+	const rows = itemsToRows(cube, dims, items, measures);
+
+	return rows;
+}
+
+export function itemsToCols(cube, dims, items, measures) {
 	const data = {};
 	for (const dim of dims.slice(0, -1)) data[dim.key] = [];
 	for (const val of measures.values) data[val[0]] = [];
-
-	const items = dimsToItems(dims.slice(0, -1));
 	for (const item of items) {
 		for (let i = 0; i < dims.length - 1; i ++) data[dims[i].key].push(item[i + 1]);
-		for (let j = 0; j < measuresLength; j ++) {
+		for (let j = 0; j < measures.values.length; j ++) {
 			data[measures.values[j][0]].push(cube.value[(item[0] * measures.count) + measures.values[j][1]]);
 		}
 	}
+	return data;
+}
+
+export function toCols(cube, dims) {
+	const measures = dims[dims.length - 1];
+
+	const items = dimsToItems(dims.slice(0, -1));
+	const data = itemsToCols(cube, dims, items, measures);
+
 	return [cube.extension.slug, data];
 }
 

@@ -16,9 +16,13 @@ export function makeTimeFilter(time) {
       .includes(timeString);
 }
 
+export function hasGeo(ds, geo) {
+  return (geo in ds.dimension.areacd.category.index);
+}
+
 export function makeGeoFilter(geo) {
   if (geo.match(/[EKNSW]\d{8}/))
-    return (ds) => !!ds.dimension.areacd.category.index[geo];
+    return (ds) => hasGeo(ds, geo);
   const geoLevel = geoLevels[geo];
   if (geoLevel)
     return (ds) => {

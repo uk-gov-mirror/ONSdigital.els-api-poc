@@ -8,6 +8,7 @@ export function GET({ params, url }) {
   const indicator = getParam(url, "indicator", "all");
   const geo = getParam(url, "geo", "all");
   const geoExtent = getParam(url, "geoExtent", "all");
+  const hasGeo = getParam(url, "hasGeo", "any");
   const time = getParam(url, "time", "latest");
   const timeNearest = getParam(url, "timeNearest", "none");
   const measure = getParam(url, "measure", "all");
@@ -19,6 +20,7 @@ export function GET({ params, url }) {
 		indicator,
 		geo,
 		geoExtent,
+		hasGeo,
 		time,
 		timeNearest,
 		measure,
