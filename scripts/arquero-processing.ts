@@ -55,33 +55,24 @@ function getIndex(row, id, size, dimension) {
 function processColumns(k, metaLookup, columnValues, id, size, role, dimension) {
     const row = metaLookup.filter(aq.escape(d => d.name === k)).objects()[0]
     const values = columnValues[k]
-    const entries = values.map((d, i) => [d, i]);
     id.push(k);
     size.push(values.length);
 
-    dimension[k] = {
-        label: k === 'measure' ? 'Measure' : row.titles[1], // measure only exists in tableSchema if there is a column called measure in the csv
-        category: { index: Object.fromEntries(entries) }
+    dimension[k] = { label: k === 'measure' ? 'Measure' : row.titles[1] };
 
-    };
     // add slugified labels for age and sex
-    if (k === 'age') {
-        dimension[k].category.label = Object.fromEntries(
-            columnValues['age'].map(d => [
-                d.replace(/(?<=\d)\sto\s(?=\d)/g, "-"),
-                d
-            ])
-        )
-    }
+    if (["age", "sex"].includes(k)) {
+        const keys = values.map(d => d.toLowerCase().replace(/(?<=\d)\sto\s(?=\d)/g, "-"));
 
-    if (k === 'sex') {
-        dimension[k].category.label = Object.fromEntries(
-            columnValues['sex'].map(d => [
-                d.toLowerCase(),
-                d
-            ])
-        )
+        dimension[k].category = {
+            index: Object.fromEntries(keys.map((d, i) => [d, i])),
+            label: Object.fromEntries(values.map((d, i) => [keys[i], d]))
+        }
+    } else {
+        const entries = values.map((d, i) => [d, i]);
+        dimension[k].category = { index: Object.fromEntries(entries) };
     }
+    
     // if it is 'measure' get the names for measure from the metadata
     if (k === 'measure') {
         const lookup = new Map(metaLookup.objects().map(d => [d.name, d.titles[0]]))
