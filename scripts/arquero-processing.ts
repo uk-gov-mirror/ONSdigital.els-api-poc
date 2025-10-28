@@ -284,7 +284,8 @@ function processFile(file, excluded_indicators) {
 }
 
 const manifest_metadata = loadCsvWithoutBom(MANIFEST);
-const excluded_indicators = manifest_metadata.filter((f) => !f.include).array('code')
+const indicator_slugs = manifest_metadata.filter((f) => f.include).array('slug');
+const excluded_indicators = manifest_metadata.filter((f) => !f.include).array('code');
 // const areas_geog_level = loadCsvWithoutBom(AREAS_GEOG_LEVEL_FILENAME);
 // const excludedIndicators = readJsonSync(EXCLUDED_INDICATORS_PATH);
 
@@ -311,12 +312,14 @@ const cube = {
     class: "collection",
     label: "ELS datasets",
     updated: (new Date()).toISOString().slice(0, 10),
-    link: { item: [] }
+    link: {}
 };
 
+const indicators = [];
 for (const file of file_paths) {
-    cube.link.item = [...cube.link.item, ...processFile(file,excluded_indicators)]
+    indicators.push(...processFile(file,excluded_indicators));
 }
+cube.link.item = indicator_slugs.map(slug => indicators.find(ind => ind.extension.slug === slug))
 
 // console.log(cube.link.item)
 const output = "./src/lib/data/json-stat.json";
