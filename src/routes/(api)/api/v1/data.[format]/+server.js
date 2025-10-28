@@ -12,6 +12,8 @@ export function GET({ params, url }) {
   const time = getParam(url, "time", "latest");
   const timeNearest = getParam(url, "timeNearest", "none");
   const measure = getParam(url, "measure", "all");
+  const includeNames = getParam(url, "includeNames", false);
+  const includeStatus = getParam(url, "includeStatus", false);
 	const dimFilters = getDimensionFilters(url);
 
 	const datasets = filterCollection({
@@ -24,6 +26,8 @@ export function GET({ params, url }) {
 		time,
 		timeNearest,
 		measure,
+		includeNames,
+		includeStatus,
 		dimFilters,
 		href: url.href
 	});

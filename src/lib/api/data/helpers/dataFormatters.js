@@ -1,4 +1,12 @@
 import { csvFormat } from "d3-dsv";
+import readData from "$lib/data";
+
+const geoLookup = await readData("geo-metadata");
+
+// Makes a code => name lookup from an array of GSS codes
+function makeAreaLookup(codes) {
+	return Object.fromEntries(codes.map(cd => [cd, geoLookup[cd]?.areanm]));
+}
 
 export function dimsToItems(dims) {
 	let items = [[0]];
@@ -14,7 +22,7 @@ export function dimsToItems(dims) {
 	return items;
 }
 
-export function toJSONStat(qb, dims) {
+export function toJSONStat(qb, dims, includeNames = false, includeStatus = false) {
 	const cube = structuredClone(qb);
 	let indices = [0];
 
@@ -44,6 +52,7 @@ export function toJSONStat(qb, dims) {
 			cube.dimension[dim.key].category.label = label;
 		}
 		cube.size[i] = size;
+		if (includeNames) cube.dimension.areacd.category.label = makeAreaLookup(Object.keys(cube.dimension.areacd.category.index));
 	}
 
 	const value = Array(indices.length).fill(null);
@@ -56,12 +65,24 @@ export function toJSONStat(qb, dims) {
 	return cube;
 }
 
+function makeRowFill(includeNames) {
+	return includeNames ? (row, item, dims) => {
+		for (let i = 0; i < dims.length - 1; i ++) {
+			row[dims[i].key] = item[i + 1];
+			if (dims[i].key === "areacd") row.areanm = geoLookup[row.areacd]?.areanm;
+		}
+	} : (row, item, dims) => {
+		for (let i = 0; i < dims.length - 1; i ++) row[dims[i].key] = item[i + 1];
+	}
+}
+
 // Wide format. Includes a separate value column for each measure
-export function itemsToRows(cube, dims, items, measures) {
+export function itemsToRows(cube, dims, items, measures, includeNames = false, includeStatus = false) {
 	const rows = [];
+	const rowFill = makeRowFill(includeNames);
 	for (const item of items) {
 		const row = {indicator: cube.extension.slug};
-		for (let i = 0; i < dims.length - 1; i ++) row[dims[i].key] = item[i + 1];
+		rowFill(row, item, dims);
 		for (let j = 0; j < measures.values.length; j ++) {
 			row[measures.values[j][0]] = cube.value[(item[0] * measures.count) + measures.values[j][1]]
 		}
@@ -71,33 +92,49 @@ export function itemsToRows(cube, dims, items, measures) {
 }
 
 // Long format. Includes a "measure" and a "value" column
-export function itemsToRowsLong(cube, dims, items) {
+export function itemsToRowsLong(cube, dims, items, includeNames = false, includeStatus = false) {
 	const rows = [];
+	const rowFill = makeRowFill(includeNames);
 	for (const item of items) {
 		const row = {indicator: cube.extension.slug};
-		for (let i = 0; i < dims.length - 1; i ++) row[dims[i].key] = item[i + 1];
+		rowFill(row, item, dims);
 		row.value = cube.value[item[0]];
 		rows.push(row);
 	}
 	return rows;
 }
 
-export function toRows(cube, dims) {
+export function toRows(cube, dims, includeNames, includeStatus) {
 	const measures = dims[dims.length - 1];
 	if (measures.values.length === 0) return [];
 
 	const items = dimsToItems(dims.slice(0, -1));
-	const rows = itemsToRows(cube, dims, items, measures);
+	const rows = itemsToRows(cube, dims, items, measures, includeNames, includeStatus);
 
 	return rows;
 }
 
-export function itemsToCols(cube, dims, items, measures) {
+function makeColFill(includeNames) {
+	return includeNames ? (data, item, dims) => {
+		for (let i = 0; i < dims.length - 1; i ++) {
+			data[dims[i].key].push(item[i + 1]);
+		}
+		data.areanm.push(geoLookup[data.areacd[data.areacd.length - 1]]?.areanm);
+	} : (data, item, dims) => {
+		for (let i = 0; i < dims.length - 1; i ++) data[dims[i].key].push(item[i + 1]);
+	};
+}
+
+export function itemsToCols(cube, dims, items, measures, includeNames = false, includeStatus = false) {
 	const data = {};
-	for (const dim of dims.slice(0, -1)) data[dim.key] = [];
+	const colFill = makeColFill(includeNames);
+	for (const dim of dims.slice(0, -1)) {
+		data[dim.key] = [];
+		if (includeNames && dim.key === "areacd") data.areanm = [];
+	};
 	for (const val of measures.values) data[val[0]] = [];
 	for (const item of items) {
-		for (let i = 0; i < dims.length - 1; i ++) data[dims[i].key].push(item[i + 1]);
+		colFill(data, item, dims);
 		for (let j = 0; j < measures.values.length; j ++) {
 			data[measures.values[j][0]].push(cube.value[(item[0] * measures.count) + measures.values[j][1]]);
 		}
@@ -105,11 +142,11 @@ export function itemsToCols(cube, dims, items, measures) {
 	return data;
 }
 
-export function toCols(cube, dims) {
+export function toCols(cube, dims, includeNames, includeStatus) {
 	const measures = dims[dims.length - 1];
 
 	const items = dimsToItems(dims.slice(0, -1));
-	const data = itemsToCols(cube, dims, items, measures);
+	const data = itemsToCols(cube, dims, items, measures, includeNames, includeStatus);
 
 	return [cube.extension.slug, data];
 }

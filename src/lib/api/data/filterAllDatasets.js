@@ -1,9 +1,9 @@
 import filterDataset from "./filterDataset.js";
 
-export default function filterAllDatasets(datasets, params, format) {
+export default function filterAllDatasets(datasets, filters, params, format) {
   const filtered = [];
   for (const cube of datasets) {
-    const data = filterDataset(cube, params, format)
+    const data = filterDataset(cube, filters, params, format)
     if (data) filtered.push(data);
   }
   if (format === "csv") return filtered;

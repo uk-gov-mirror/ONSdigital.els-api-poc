@@ -49,7 +49,7 @@ export default function filterCollection(params = {}) {
 	}
 
 	// Apply filters to datasets and generate output for selected format
-	datasets = filterAllDatasets(datasets, filters, params.format);
+	datasets = filterAllDatasets(datasets, filters, params, params.format);
 
 	return params.format === "csv" ? {format: "text", data: csvSerialise(datasets)} : {format: "json", data: datasets};
 }
