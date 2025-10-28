@@ -8,6 +8,13 @@ function makeAreaLookup(codes) {
 	return Object.fromEntries(codes.map(cd => [cd, geoLookup[cd]?.areanm]));
 }
 
+// 
+export function dimsToIndex(dims) {
+	let index = 0;
+	for (const dim of dims) index = (index * dim.count) + dim.value[1];
+	return index;
+}
+
 export function dimsToItems(dims) {
 	let items = [[0]];
 	for (const dim of dims) {

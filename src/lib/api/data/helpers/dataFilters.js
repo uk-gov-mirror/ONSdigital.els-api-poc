@@ -1,7 +1,7 @@
 import { Temporal } from "temporal-polyfill";
 import { geoLevels } from "$lib/config/geo-levels.js";
 import getChildAreas from "$lib/api/geo/getChildAreas.js";
-import getObservation from "./getObservation.js";
+import hasObservation from "./hasObservation.js";
 import { isValidMonth, isValidYear } from "$lib/api/utils.js";
 
 export function ascending(a, b) {
@@ -96,5 +96,5 @@ export function filterTime(values, params = {}) {
 }
 
 export function filterTimeForGeo(ds, values, geo) {
-	return values.filter(val => getObservation(ds, {areacd: geo, period: val[0], measure: "value"}, "any"));
+	return values.filter(val => hasObservation(ds, {areacd: geo, period: val[0], measure: "value"}));
 }
