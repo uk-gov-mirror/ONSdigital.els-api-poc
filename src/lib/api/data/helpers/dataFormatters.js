@@ -23,7 +23,9 @@ export function dimsToItems(dims) {
 }
 
 export function toJSONStat(qb, dims, includeNames = false, includeStatus = false) {
-	const cube = structuredClone(qb);
+	const cube = {};
+	for (const key of Object.keys(qb).filter(key => !["value", "status"].includes(key))) cube[key] = structuredClone(qb[key]);
+
 	let indices = [0];
 
 	for (let i = 0; i < dims.length; i ++) {
@@ -48,7 +50,7 @@ export function toJSONStat(qb, dims, includeNames = false, includeStatus = false
 		cube.dimension[dim.key].category.index = Object.fromEntries(dim.values.map((val, i) => [val[0], i]));
 		if (cube.dimension[dim.key].category.label && size < cube.size[i]) {
 			const label = {};
-			for (const val of dim.values) label[val[1]] = cube.dimension[dim.key].category.label[val[1]];
+			for (const val of dim.values) label[val[1]] = qb.dimension[dim.key].category.label[val[1]];
 			cube.dimension[dim.key].category.label = label;
 		}
 		cube.size[i] = size;
@@ -57,9 +59,18 @@ export function toJSONStat(qb, dims, includeNames = false, includeStatus = false
 
 	const value = Array(indices.length).fill(null);
 
-	for (let i = 0; i < indices.length; i ++) {
-		value[i] = cube.value[indices[i]];
+	if (includeStatus) {
+		cube.status = {};
+		for (let i = 0; i < indices.length; i ++) {
+			value[i] = qb.value[indices[i]];
+			if (qb.status[indices[i]]) cube.status[indices[i]] = qb.status[indices[i]];
+		}
+	} else {
+		for (let i = 0; i < indices.length; i ++) {
+			value[i] = qb.value[indices[i]];
+		}
 	}
+	
 	cube.value = value;
 	
 	return cube;
@@ -67,7 +78,9 @@ export function toJSONStat(qb, dims, includeNames = false, includeStatus = false
 
 function makeRowFill(includeNames) {
 	return includeNames ? (row, item, dims) => {
-		for (let i = 0; i < dims.length - 1; i ++) {
+		row.areacd = item[1]
+		row.areanm = geoLookup[row.areacd]?.areanm;
+		for (let i = 1; i < dims.length - 1; i ++) {
 			row[dims[i].key] = item[i + 1];
 			if (dims[i].key === "areacd") row.areanm = geoLookup[row.areacd]?.areanm;
 		}
