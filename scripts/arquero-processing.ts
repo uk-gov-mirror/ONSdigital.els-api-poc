@@ -58,7 +58,7 @@ function processColumns(k, metaLookup, columnValues, id, size, role, dimension) 
     id.push(k);
     size.push(values.length);
 
-    dimension[k] = { label: k === 'measure' ? 'Measure' : row.titles[1] };
+    dimension[k] = { label: k === 'measure' ? 'Measure' : row.titles[row.titles.length - 1] };
 
     // add slugified labels for age and sex
     if (["age", "sex"].includes(k)) {
