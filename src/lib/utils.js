@@ -19,10 +19,11 @@ export async function fetchChartData(indicator, geography = "ltla", time = "late
   return parseData(data[indicator]);
 }
 
-export async function fetchChartDataV1(indicator, dimensions = {geo: "ltla", time: "latest"}) {
+export async function fetchChartDataV1(indicator, dimensions) {
+  dimensions = {...{geo: "ltla", time: "latest"}, ...dimensions}; // Use default geo + time filters unless explicitly set
   const coreDims = ["geo", "time"];
   const dims = Object.entries(dimensions)
-    .map(d => coreDims.includes(d[0]) ? `${d[0]}=${[d[1]].join(",")}` : `dim-${d[0]}=${d[1].join(",")}`);
+    .map(d => coreDims.includes(d[0]) ? `${d[0]}=${[d[1]].join(",")}` : `dimension_${d[0]}=${d[1].join(",")}`);
   const url = resolve(`/api/v1/data.cols.json?indicator=${indicator}${dims.length > 0 ? `&${dims.join("&")}` : ""}`);
   const data = await (await fetch(url)).json();
   console.log({data});
