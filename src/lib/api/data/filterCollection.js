@@ -11,6 +11,7 @@ const cube = await readData("json-stat");
 export default function filterCollection(params = {}) {
   let datasets = cube.link.item;
 
+	const singleIndicator = params.topic === "all" && [params.indicator].flat().length === 1;
 	const filters = {};
 
 	// Filter datasets by indicator, and by topic OR sub-topic (additive)
@@ -49,7 +50,7 @@ export default function filterCollection(params = {}) {
 	}
 
 	// Apply filters to datasets and generate output for selected format
-	datasets = filterAllDatasets(datasets, filters, params, params.format);
+	datasets = filterAllDatasets(datasets, filters, params, params.format, singleIndicator);
 
 	return params.format === "csv" ? {format: "text", data: csvSerialise(datasets)} : {format: "json", data: datasets};
 }

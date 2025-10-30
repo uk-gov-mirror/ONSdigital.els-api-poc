@@ -93,7 +93,7 @@ function makeRowFill(includeNames, includeStatus, measuresCount = 1) {
 	}
 	const addStatus = (row, item, status) => row.status = status[item[0] * measuresCount] || null
 	return includeNames && includeStatus ? (row, item, dims, status) => {
-		addValsWithName(row, item, status);
+		addValsWithName(row, item, dims);
 		addStatus(row, item, status);
 	} : includeNames ? addValsWithName : 
 	includeStatus ? (row, item, dims, status) => {
@@ -103,11 +103,11 @@ function makeRowFill(includeNames, includeStatus, measuresCount = 1) {
 }
 
 // Wide format. Includes a separate value column for each measure
-export function itemsToRows(cube, dims, items, measures, includeNames = false, includeStatus = false) {
+export function itemsToRows(cube, dims, items, measures, includeIndicator = false, includeNames = false, includeStatus = false) {
 	const rows = [];
 	const rowFill = makeRowFill(includeNames, includeStatus, measures.count);
 	for (const item of items) {
-		const row = {indicator: cube.extension.slug};
+		const row = includeIndicator ? {indicator: cube.extension.slug} : {};
 		rowFill(row, item, dims, cube.status);
 		for (let j = 0; j < measures.values.length; j ++) {
 			row[measures.values[j][0]] = cube.value[(item[0] * measures.count) + measures.values[j][1]]
@@ -118,11 +118,11 @@ export function itemsToRows(cube, dims, items, measures, includeNames = false, i
 }
 
 // Long format. Includes a "measure" and a "value" column
-export function itemsToRowsLong(cube, dims, items, includeNames = false, includeStatus = false) {
+export function itemsToRowsLong(cube, dims, items, includeIndicator = false, includeNames = false, includeStatus = false) {
 	const rows = [];
 	const rowFill = makeRowFill(includeNames, includeStatus);
 	for (const item of items) {
-		const row = {indicator: cube.extension.slug};
+		const row = includeIndicator ? {indicator: cube.extension.slug} : {};
 		rowFill(row, item, dims);
 		row.value = cube.value[item[0]];
 		rows.push(row);
@@ -130,14 +130,14 @@ export function itemsToRowsLong(cube, dims, items, includeNames = false, include
 	return rows;
 }
 
-export function toRows(cube, dims, includeNames, includeStatus) {
+export function toRows(cube, dims, includeIndicator, includeNames, includeStatus) {
 	const measures = dims[dims.length - 1];
 	if (measures.values.length === 0) return [];
 
 	const items = dimsToItems(dims.slice(0, -1));
-	const rows = itemsToRows(cube, dims, items, measures, includeNames, includeStatus);
+	const rows = itemsToRows(cube, dims, items, measures, includeIndicator, includeNames, includeStatus);
 
-	return rows;
+	return includeIndicator ? rows : [cube.extension.slug, rows];
 }
 
 function makeColFill(includeNames, includeStatus, measuresCount = 1) {
