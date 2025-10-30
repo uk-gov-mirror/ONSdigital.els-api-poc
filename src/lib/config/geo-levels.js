@@ -62,3 +62,5 @@ export const geoLevelsLookup = makeLookup(geoLevelsArray);
 
 export const geoLevelsAllArray = makeArray(geoLevelsAll);
 export const geoLevelsAllLookup = makeLookup(geoLevelsAllArray);
+
+export const countriesMap = {E: "E92000001", N: "N92000002", S: "S92000003", W: "W92000004"};

@@ -1,6 +1,21 @@
 import { csvFormat } from "d3-dsv";
+import readData from "$lib/data";
 
-function dimsToItems(dims) {
+const geoLookup = await readData("geo-metadata");
+
+// Makes a code => name lookup from an array of GSS codes
+function makeAreaLookup(codes) {
+	return Object.fromEntries(codes.map(cd => [cd, geoLookup[cd]?.areanm]));
+}
+
+// 
+export function dimsToIndex(dims) {
+	let index = 0;
+	for (const dim of dims) index = (index * dim.count) + dim.value[1];
+	return index;
+}
+
+export function dimsToItems(dims) {
 	let items = [[0]];
 	for (const dim of dims) {
 		const newItems = [];
@@ -14,8 +29,10 @@ function dimsToItems(dims) {
 	return items;
 }
 
-export function toJSONStat(qb, dims) {
-	const cube = structuredClone(qb);
+export function toJSONStat(qb, dims, includeNames = false, includeStatus = false) {
+	const cube = {};
+	for (const key of Object.keys(qb).filter(key => !["value", "status"].includes(key))) cube[key] = structuredClone(qb[key]);
+
 	let indices = [0];
 
 	for (let i = 0; i < dims.length; i ++) {
@@ -40,34 +57,53 @@ export function toJSONStat(qb, dims) {
 		cube.dimension[dim.key].category.index = Object.fromEntries(dim.values.map((val, i) => [val[0], i]));
 		if (cube.dimension[dim.key].category.label && size < cube.size[i]) {
 			const label = {};
-			for (const val of dim.values) label[val[1]] = cube.dimension[dim.key].category.label[val[1]];
+			for (const val of dim.values) label[val[1]] = qb.dimension[dim.key].category.label[val[1]];
 			cube.dimension[dim.key].category.label = label;
 		}
 		cube.size[i] = size;
+		if (includeNames) cube.dimension.areacd.category.label = makeAreaLookup(Object.keys(cube.dimension.areacd.category.index));
 	}
 
 	const value = Array(indices.length).fill(null);
 
-	for (let i = 0; i < indices.length; i ++) {
-		value[i] = cube.value[indices[i]];
+	if (includeStatus) {
+		cube.status = {};
+		for (let i = 0; i < indices.length; i ++) {
+			value[i] = qb.value[indices[i]];
+			if (qb.status[indices[i]]) cube.status[indices[i]] = qb.status[indices[i]];
+		}
+	} else {
+		for (let i = 0; i < indices.length; i ++) {
+			value[i] = qb.value[indices[i]];
+		}
 	}
+	
 	cube.value = value;
 	
 	return cube;
 }
 
-export function toRows(cube, dims) {
-	const measures = dims[dims.length - 1];
-	const measuresLength = measures.values.length;
-	if (measuresLength === 0) return [];
+function makeRowFill(includeNames) {
+	return includeNames ? (row, item, dims) => {
+		row.areacd = item[1]
+		row.areanm = geoLookup[row.areacd]?.areanm;
+		for (let i = 1; i < dims.length - 1; i ++) {
+			row[dims[i].key] = item[i + 1];
+			if (dims[i].key === "areacd") row.areanm = geoLookup[row.areacd]?.areanm;
+		}
+	} : (row, item, dims) => {
+		for (let i = 0; i < dims.length - 1; i ++) row[dims[i].key] = item[i + 1];
+	}
+}
 
-	const items = dimsToItems(dims.slice(0, -1));
-
+// Wide format. Includes a separate value column for each measure
+export function itemsToRows(cube, dims, items, measures, includeNames = false, includeStatus = false) {
 	const rows = [];
+	const rowFill = makeRowFill(includeNames);
 	for (const item of items) {
 		const row = {indicator: cube.extension.slug};
-		for (let i = 0; i < dims.length - 1; i ++) row[dims[i].key] = item[i + 1];
-		for (let j = 0; j < measuresLength; j ++) {
+		rowFill(row, item, dims);
+		for (let j = 0; j < measures.values.length; j ++) {
 			row[measures.values[j][0]] = cube.value[(item[0] * measures.count) + measures.values[j][1]]
 		}
 		rows.push(row);
@@ -75,21 +111,63 @@ export function toRows(cube, dims) {
 	return rows;
 }
 
-export function toCols(cube, dims) {
-	const measures = dims[dims.length - 1];
-	const measuresLength = measures.values.length;
+// Long format. Includes a "measure" and a "value" column
+export function itemsToRowsLong(cube, dims, items, includeNames = false, includeStatus = false) {
+	const rows = [];
+	const rowFill = makeRowFill(includeNames);
+	for (const item of items) {
+		const row = {indicator: cube.extension.slug};
+		rowFill(row, item, dims);
+		row.value = cube.value[item[0]];
+		rows.push(row);
+	}
+	return rows;
+}
 
-	const data = {};
-	for (const dim of dims.slice(0, -1)) data[dim.key] = [];
-	for (const val of measures.values) data[val[0]] = [];
+export function toRows(cube, dims, includeNames, includeStatus) {
+	const measures = dims[dims.length - 1];
+	if (measures.values.length === 0) return [];
 
 	const items = dimsToItems(dims.slice(0, -1));
-	for (const item of items) {
+	const rows = itemsToRows(cube, dims, items, measures, includeNames, includeStatus);
+
+	return rows;
+}
+
+function makeColFill(includeNames) {
+	return includeNames ? (data, item, dims) => {
+		for (let i = 0; i < dims.length - 1; i ++) {
+			data[dims[i].key].push(item[i + 1]);
+		}
+		data.areanm.push(geoLookup[data.areacd[data.areacd.length - 1]]?.areanm);
+	} : (data, item, dims) => {
 		for (let i = 0; i < dims.length - 1; i ++) data[dims[i].key].push(item[i + 1]);
-		for (let j = 0; j < measuresLength; j ++) {
+	};
+}
+
+export function itemsToCols(cube, dims, items, measures, includeNames = false, includeStatus = false) {
+	const data = {};
+	const colFill = makeColFill(includeNames);
+	for (const dim of dims.slice(0, -1)) {
+		data[dim.key] = [];
+		if (includeNames && dim.key === "areacd") data.areanm = [];
+	};
+	for (const val of measures.values) data[val[0]] = [];
+	for (const item of items) {
+		colFill(data, item, dims);
+		for (let j = 0; j < measures.values.length; j ++) {
 			data[measures.values[j][0]].push(cube.value[(item[0] * measures.count) + measures.values[j][1]]);
 		}
 	}
+	return data;
+}
+
+export function toCols(cube, dims, includeNames, includeStatus) {
+	const measures = dims[dims.length - 1];
+
+	const items = dimsToItems(dims.slice(0, -1));
+	const data = itemsToCols(cube, dims, items, measures, includeNames, includeStatus);
+
 	return [cube.extension.slug, data];
 }
 

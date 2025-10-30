@@ -40,48 +40,39 @@ function parsePeriod(str, isQuarterly = false) {
     if (isQuarterly && parts.length === 1) parts.push("P3M");
     return parts.join("/");
 }
-function getIndex(row, id, size, dimension) {
+function getIndex(row, id, size, dimension, reverseLookup) {
     const coords = [];
     for (const key of id) {
-        coords.push(dimension[key].category.index[row[key]]);
+        if (reverseLookup[key]) coords.push(dimension[key].category.index[reverseLookup[key][row[key]]]);
+        else coords.push(dimension[key].category.index[row[key]]);
     }
     let index = 0;
     for (let i = 0; i < coords.length; i++) {
         index = (index * size[i]) + coords[i];
     }
     return index;
-
 }
 function processColumns(k, metaLookup, columnValues, id, size, role, dimension) {
     const row = metaLookup.filter(aq.escape(d => d.name === k)).objects()[0]
     const values = columnValues[k]
-    const entries = values.map((d, i) => [d, i]);
     id.push(k);
     size.push(values.length);
 
-    dimension[k] = {
-        label: k === 'measure' ? 'Measure' : row.titles[1], // measure only exists in tableSchema if there is a column called measure in the csv
-        category: { index: Object.fromEntries(entries) }
+    dimension[k] = { label: k === 'measure' ? 'Measure' : row.titles[row.titles.length - 1] };
 
-    };
     // add slugified labels for age and sex
-    if (k === 'age') {
-        dimension[k].category.label = Object.fromEntries(
-            columnValues['age'].map(d => [
-                d.replace(/(?<=\d)\sto\s(?=\d)/g, "-"),
-                d
-            ])
-        )
-    }
+    if (["age", "sex"].includes(k)) {
+        const keys = values.map(d => d.toLowerCase().replace(/(?<=\d)\sto\s(?=\d)/g, "-"));
 
-    if (k === 'sex') {
-        dimension[k].category.label = Object.fromEntries(
-            columnValues['sex'].map(d => [
-                d.toLowerCase(),
-                d
-            ])
-        )
+        dimension[k].category = {
+            index: Object.fromEntries(keys.map((d, i) => [d, i])),
+            label: Object.fromEntries(values.map((d, i) => [keys[i], d]))
+        }
+    } else {
+        const entries = values.map((d, i) => [d, i]);
+        dimension[k].category = { index: Object.fromEntries(entries) };
     }
+    
     // if it is 'measure' get the names for measure from the metadata
     if (k === 'measure') {
         const lookup = new Map(metaLookup.objects().map(d => [d.name, d.titles[0]]))
@@ -217,12 +208,21 @@ function indicatorToCube(indicator, t, meta_data, tableSchema, dataset_name) {
         processColumns(k, metaLookup, columnValues, id, size, role, dimension)
     }
 
+    // Lookup for dimensions where their cell values are different to their keys
+    const dimensionReverseLookups = {};
+    for (const key of Object.keys(dimension).filter(key => key !== "measure" && dimension[key].category.label)) {
+        dimensionReverseLookups[key] = Object.fromEntries(
+            Object.entries(dimension[key].category.label).map(l => l.reverse())
+        );
+    }
+        
+
     const valuesLength = size.reduce((a, b) => a * b, 1);
     const value = new Array(valuesLength).fill(null);
     const status = {}
 
     for (const row of indicatorTableLong_periods) {
-        const i = getIndex(row, id, size, dimension);
+        const i = getIndex(row, id, size, dimension, dimensionReverseLookups);
         value[i] = row.value;
         if (row.status) { status[i] = row.status };
     }
@@ -284,7 +284,8 @@ function processFile(file, excluded_indicators) {
 }
 
 const manifest_metadata = loadCsvWithoutBom(MANIFEST);
-const excluded_indicators = manifest_metadata.filter((f) => !f.include).array('code')
+const indicator_slugs = manifest_metadata.filter((f) => f.include).array('slug');
+const excluded_indicators = manifest_metadata.filter((f) => !f.include).array('code');
 // const areas_geog_level = loadCsvWithoutBom(AREAS_GEOG_LEVEL_FILENAME);
 // const excludedIndicators = readJsonSync(EXCLUDED_INDICATORS_PATH);
 
@@ -311,12 +312,14 @@ const cube = {
     class: "collection",
     label: "ELS datasets",
     updated: (new Date()).toISOString().slice(0, 10),
-    link: { item: [] }
+    link: {}
 };
 
+const indicators = [];
 for (const file of file_paths) {
-    cube.link.item = [...cube.link.item, ...processFile(file,excluded_indicators)]
+    indicators.push(...processFile(file,excluded_indicators));
 }
+cube.link.item = indicator_slugs.map(slug => indicators.find(ind => ind.extension.slug === slug))
 
 // console.log(cube.link.item)
 const output = "./src/lib/data/json-stat.json";

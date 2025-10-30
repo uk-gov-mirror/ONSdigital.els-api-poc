@@ -24,7 +24,7 @@ export default function getIndicators(params = {}) {
     return formatMetadata(indicator, params.includeDims);
   }
 
-  const filter = makeDatasetFilter(params.topic, params.geo, params.time);
+  const filter = makeDatasetFilter(params.topic, params.hasGeo, params.hasYear);
   if (filter.error) return filter;
 
   const metadata = rawMetadata.link.item

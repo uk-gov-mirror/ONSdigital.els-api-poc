@@ -5,15 +5,15 @@ import getIndicators from "$lib/api/metadata/getIndicators.js";
 export function GET({ params, url }) {
   const indicator = params.indicator || null;
   const topic = getParam(url, "topic", "all");
-  const geo = getParam(url, "geo", "all");
-  const time = getParam(url, "time", "all");
+  const hasGeo = getParam(url, "hasGeo", "all");
+  const hasYear = getParam(url, "hasYear", "all");
   const includeDims = getParam(url, "includeDims", false);
 
   const metadata = getIndicators({
     indicator,
     topic,
-    geo,
-    time,
+    hasGeo,
+    hasYear,
     includeDims
   });
 
