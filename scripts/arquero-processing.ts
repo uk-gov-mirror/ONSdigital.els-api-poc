@@ -40,17 +40,17 @@ function parsePeriod(str, isQuarterly = false) {
     if (isQuarterly && parts.length === 1) parts.push("P3M");
     return parts.join("/");
 }
-function getIndex(row, id, size, dimension) {
+function getIndex(row, id, size, dimension, reverseLookup) {
     const coords = [];
     for (const key of id) {
-        coords.push(dimension[key].category.index[row[key]]);
+        if (reverseLookup[key]) coords.push(dimension[key].category.index[reverseLookup[key][row[key]]]);
+        else coords.push(dimension[key].category.index[row[key]]);
     }
     let index = 0;
     for (let i = 0; i < coords.length; i++) {
         index = (index * size[i]) + coords[i];
     }
     return index;
-
 }
 function processColumns(k, metaLookup, columnValues, id, size, role, dimension) {
     const row = metaLookup.filter(aq.escape(d => d.name === k)).objects()[0]
@@ -208,12 +208,21 @@ function indicatorToCube(indicator, t, meta_data, tableSchema, dataset_name) {
         processColumns(k, metaLookup, columnValues, id, size, role, dimension)
     }
 
+    // Lookup for dimensions where their cell values are different to their keys
+    const dimensionReverseLookups = {};
+    for (const key of Object.keys(dimension).filter(key => key !== "measure" && dimension[key].category.label)) {
+        dimensionReverseLookups[key] = Object.fromEntries(
+            Object.entries(dimension[key].category.label).map(l => l.reverse())
+        );
+    }
+        
+
     const valuesLength = size.reduce((a, b) => a * b, 1);
     const value = new Array(valuesLength).fill(null);
     const status = {}
 
     for (const row of indicatorTableLong_periods) {
-        const i = getIndex(row, id, size, dimension);
+        const i = getIndex(row, id, size, dimension, dimensionReverseLookups);
         value[i] = row.value;
         if (row.status) { status[i] = row.status };
     }
