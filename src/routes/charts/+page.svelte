@@ -14,7 +14,7 @@
     LazyLoad
   } from "@onsvisual/svelte-components";
   import Beeswarm from "$lib/viz/Beeswarm.svelte";
-  import { fetchChartData } from "$lib/utils.js";
+  import { fetchChartDataV1 } from "$lib/utils.js";
 
   export let data;
 
@@ -65,7 +65,7 @@
         <h3>{ind.label}</h3>
         <LazyLoad>
           <div class="chart-container">
-            {#await fetchChartData(ind.slug)}
+            {#await fetchChartDataV1(ind.slug)}
               Fetching chart data
             {:then chartData}
               <Beeswarm data={chartData} selected={area}/>
