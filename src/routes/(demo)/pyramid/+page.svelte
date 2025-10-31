@@ -12,7 +12,7 @@
     Select,
     Button,
   } from "@onsvisual/svelte-components";
-  import { fetchChartData } from "$lib/utils.js";
+  import { fetchChartDataV1 } from "$lib/utils.js";
   import Barcode from "./Barcode.svelte";
   import Pyramid from "./Pyramid.svelte";
   import BarcodeJoined from "./BarcodeJoined.svelte";
@@ -88,11 +88,11 @@
     marginTop={true}
     width="medium"
   >
-    {#await fetchChartData("population-by-age-and-sex", "ltla", 2023)}
+    {#await fetchChartDataV1("population-by-age-and-sex", {sex: ["female", "male"]})}
       Fetching chart data
     {:then chartData}
       <BarcodeJoined
-        data={chartData.filter((d) => d.sex !== "All" && d.value != null)}
+        data={chartData.filter((d) => d.value != null)}
         bind:selectedArea={selected}
       />
     {:catch}
@@ -105,11 +105,11 @@
     marginTop={true}
     width="medium"
   >
-    {#await fetchChartData("population-by-age-and-sex", "ltla", 2023)}
+    {#await fetchChartDataV1("population-by-age-and-sex", {sex: ["female", "male"]})}
       Fetching chart data
     {:then chartData}
       <Pyramid
-        data={chartData.filter((d) => d.sex !== "All" && d.value != null)}
+        data={chartData.filter((d) => d.value != null)}
         bind:selectedArea={selected}
       />
     {:catch}

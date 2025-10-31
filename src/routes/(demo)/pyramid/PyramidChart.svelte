@@ -21,7 +21,7 @@
 
   const xDomain = [0, Math.max(...data.map((d) => d[xKey]))];
   const yDomain = Array.from(new Set(data.map((d) => d[yKey])));
-  const zDomain = ["Female", "Male"];
+  const zDomain = ["female", "male"];
   const yMax = barHeight * yDomain.length;
   const yRange = [yMax, 0];
   const barGap = 1; // actual size of barGap in pixels
@@ -35,10 +35,10 @@
     const filtered = keyedData[area] || [];
     return {
       Male: filtered
-        .filter((d) => d.sex === "Male")
+        .filter((d) => d.sex === "male")
         .reduce((acc, d) => acc + d.value, 0),
       Female: filtered
-        .filter((d) => d.sex === "Female")
+        .filter((d) => d.sex === "female")
         .reduce((acc, d) => acc + d.value, 0),
     };
   }

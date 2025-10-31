@@ -23,6 +23,7 @@
     return keyedData;
   }
   const keyedData = keyData(data, groupKey);
+  
 </script>
 
 <svelte:head>

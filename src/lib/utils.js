@@ -7,7 +7,7 @@ export function parseData(data) {
   for (let i = 0; i < data[cols[0]].length; i++) {
     const row = {};
     for (const col of cols) row[col] = data[col][i];
-    row.areanm = areaLookup[row.areacd].areanm;
+    // row.areanm = areaLookup[row.areacd].areanm;
     rows.push(row);
   }
   return rows;
