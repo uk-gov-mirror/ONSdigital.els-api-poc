@@ -14,7 +14,7 @@
     LazyLoad
   } from "@onsvisual/svelte-components";
   import Beeswarm from "$lib/viz/Beeswarm.svelte";
-  import { fetchChartData } from "$lib/utils.js";
+  import { fetchChartDataV1 } from "$lib/utils.js";
 
   export let data;
 
@@ -32,7 +32,7 @@
 
     const exclude = ["population-by-age-and-sex"];
 
-    const indicators = await (await fetch(resolve(`/api/v1/metadata/indicators?geo=${selected.areacd}`))).json();
+    const indicators = await (await fetch(resolve(`/api/v1/metadata/indicators?hasGeo=${selected.areacd}`))).json();
     topics = Array.from(new Set(indicators.map(ind => ind.topic)))
       .map(topic => ({
         key: topic,
@@ -65,10 +65,11 @@
         <h3>{ind.label}</h3>
         <LazyLoad>
           <div class="chart-container">
-            {#await fetchChartData(ind.slug)}
+            {#await fetchChartDataV1(ind.slug)}
               Fetching chart data
             {:then chartData}
               <Beeswarm data={chartData} selected={area}/>
+              {console.log({chartData})}
             {:catch}
               Failed to load chart data
             {/await}
