@@ -11,6 +11,7 @@ const cube = await readData("json-stat");
 export default function filterCollection(params = {}) {
   let datasets = cube.link.item;
 
+	const singleIndicator = params.topic === "all" && params.indicator !== "all" && [params.indicator].flat().length === 1;
 	const filters = {};
 
 	// Filter datasets by indicator, and by topic OR sub-topic (additive)
@@ -18,6 +19,11 @@ export default function filterCollection(params = {}) {
 	const indicatorFilter = params.indicator === "all" ? () => true : (d) => [params.indicator].flat().includes(d.extension.slug);
 	const combinedFilter = ![params.topic, params.indicator].includes("all") ? (d) => topicFilter(d) || indicatorFilter(d) : (d) => topicFilter(d) && indicatorFilter(d);
 	datasets = datasets.filter(combinedFilter);
+
+	// Remove multi-variate indicators if they have not been selected explicitly
+	if (params.excludeMultivariate === true) {
+		datasets = datasets.filter(d => !(d.extension.isMultivariate && ![params.indicator].flat().includes(d.extension.slug)));
+	}
 
 	// Filter for datasets that include a specific geography
 	if (params.hasGeo !== "any") {
@@ -49,7 +55,7 @@ export default function filterCollection(params = {}) {
 	}
 
 	// Apply filters to datasets and generate output for selected format
-	datasets = filterAllDatasets(datasets, filters, params, params.format);
+	datasets = filterAllDatasets(datasets, filters, params, params.format, singleIndicator);
 
 	return params.format === "csv" ? {format: "text", data: csvSerialise(datasets)} : {format: "json", data: datasets};
 }

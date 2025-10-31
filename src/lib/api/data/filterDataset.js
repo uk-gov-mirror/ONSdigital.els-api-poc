@@ -23,6 +23,7 @@ export default function filterDataset(cube, filters, params, format) {
 	if (length === 0) return null;
 
 	if (format.slice(0, 4) === "cols") return toCols(cube, dims, params.includeNames, params.includeStatus);
-	if (format === "csv") return toRows(cube, dims, params.includeNames, params.includeStatus);
+	if (format.slice(0, 4) === "rows") return toRows(cube, dims, false, params.includeNames, params.includeStatus);
+	if (format === "csv") return toRows(cube, dims, true, params.includeNames, params.includeStatus);
 	return toJSONStat(cube, dims, params.includeNames, params.includeStatus);
 }

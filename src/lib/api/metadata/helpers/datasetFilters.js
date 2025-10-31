@@ -28,12 +28,13 @@ export function makeGeoFilter(geo) {
   return {error: "Invalid 'hasGeo' parameter. Must be a valid GSS code or geography level."};
 }
 
-export function makeDatasetFilter(topic, geo, year) {
-  if (topic === "all" && geo === "all" && year === "all") return () => true;
+export function makeDatasetFilter(topic, excludeMultivariate, geo, year) {
+  if (topic === "all" && geo === "all" && year === "all" && !excludeMultivariate) return () => true;
+  const multivariateFilter = excludeMultivariate === true ? (ds) => !ds.extension.isMultivariate : () => true;
   const topicFilter = topic === "all" ? () => true : makeTopicFilter(topic);
   const yearFilter = year === "all" ? () => true : makeYearFilter(year);
   if (yearFilter.error) return yearFilter;
   const geoFilter = geo === "all" ? () => true : makeGeoFilter(geo);
   if (geoFilter.error) return geoFilter;
-  return (ds) => topicFilter(ds) && yearFilter(ds) && geoFilter(ds);
+  return (ds) => topicFilter(ds) && multivariateFilter(ds) && yearFilter(ds) && geoFilter(ds);
 }

@@ -6,6 +6,7 @@ export function GET({ params, url }) {
   const format = params.format || "cols";
   const topic = getParam(url, "topic", "all");
   const indicator = getParam(url, "indicator", "all");
+  const excludeMultivariate = getParam(url, "excludeMultivariate", false);
   const geo = getParam(url, "geo", "all");
   const geoExtent = getParam(url, "geoExtent", "all");
   const hasGeo = getParam(url, "hasGeo", "any");
@@ -20,6 +21,7 @@ export function GET({ params, url }) {
 		format,
 		topic,
 		indicator,
+		excludeMultivariate,
 		geo,
 		geoExtent,
 		hasGeo,
