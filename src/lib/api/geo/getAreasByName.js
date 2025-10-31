@@ -1,8 +1,10 @@
-import areasList from "$lib/data/areas-list.json";
 import { makeGeoLevelFilter, geoYearFilter } from "./helpers/geoFilters";
 import groupAreasByLevel from "./helpers/groupAreasByLevel";
-import geoLatestYear from "$lib/data/geo-latest-year.json";
-import geoMetadata from "$lib/data/geo-metadata.json";
+import readData from "$lib/data";
+
+const areasList = await readData("areas-list");
+const geoLatestYear = await readData("geo-latest-year");
+const geoMetadata = await readData("geo-metadata");
 
 function makeAreaRow(json, i) {
   const row = { areacd: json.areacd[i], areanm: json.areanm[i] };

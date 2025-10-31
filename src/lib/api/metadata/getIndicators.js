@@ -1,5 +1,7 @@
-import rawMetadata from "$lib/data/json-stat.json";
 import { makeDatasetFilter } from "./helpers/datasetFilters.js";
+import readData from "$lib/data";
+
+const rawMetadata = await readData("json-stat");
 
 function formatMetadata(ds, includeDims = false) {
   if (!ds) return {};
@@ -22,7 +24,7 @@ export default function getIndicators(params = {}) {
     return formatMetadata(indicator, params.includeDims);
   }
 
-  const filter = makeDatasetFilter(params.topic, params.geo, params.time);
+  const filter = makeDatasetFilter(params.topic, params.excludeMultivariate, params.hasGeo, params.hasYear);
   if (filter.error) return filter;
 
   const metadata = rawMetadata.link.item

@@ -1,9 +1,11 @@
 import { feature } from "topojson-client";
 import { topology } from "topojson-server";
 import { coordEach } from "@turf/meta";
-import topojson from "$lib/data/topo.json";
-import geoLatestYear from "$lib/data/geo-latest-year.json";
 import { geoYearFilter, makeCountryFilter } from "./helpers/geoFilters.js";
+import readData from "$lib/data";
+
+const topojson = await readData("topo");
+const geoLatestYear = await readData("geo-latest-year");
 
 function roundCoords(coords) {
   coords[0] = Math.round(coords[0] * 1e4) / 1e4;

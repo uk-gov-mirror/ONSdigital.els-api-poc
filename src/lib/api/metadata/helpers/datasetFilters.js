@@ -6,35 +6,35 @@ export function makeTopicFilter(topic) {
     ds.extension.topic === topic || ds.extension.subtopic === topic;
 }
 
-export function makeTimeFilter(time) {
-  const timeString = String(time);
+export function makeYearFilter(year) {
+  const timeString = String(year);
   if (!timeString.match(/^\d{4}$/))
-    return {error: "Invalid 'time' parameter. Must be YYYY or 'all'."};
+    return {error: "Invalid 'hasYear' parameter. Must be YYYY or 'all'."};
   return (ds) =>
     Object.keys(ds.dimension.period.category.index)
       .map((d) => d.slice(0, 4))
       .includes(timeString);
 }
 
-export function makeGeoFilter(geo) {
-  if (geo.match(/[EKNSW]\d{8}/))
-    return (ds) => !!ds.dimension.areacd.category.index[geo];
-  const geoLevel = geoLevels[geo];
-  if (geoLevel)
-    return (ds) => {
-      return geoLevel.codes.every((cd) =>
-        ds.extension.geography.types.includes(cd)
-      );
-    };
-  return {error: "Invalid 'geo' parameter. Must be a valid GSS code or geography level."};
+export function hasGeo(ds, geo) {
+  return (geo in ds.dimension.areacd.category.index);
 }
 
-export function makeDatasetFilter(topic, geo, time) {
-  if (topic === "all" && geo === "all" && time === "all") return () => true;
+export function makeGeoFilter(geo) {
+  if (geo.match(/[EKNSW]\d{8}/))
+    return (ds) => hasGeo(ds, geo);
+  if (geo in geoLevels)
+    return (ds) => ds.extension.geography.levels.includes(geo);
+  return {error: "Invalid 'hasGeo' parameter. Must be a valid GSS code or geography level."};
+}
+
+export function makeDatasetFilter(topic, excludeMultivariate, geo, year) {
+  if (topic === "all" && geo === "all" && year === "all" && !excludeMultivariate) return () => true;
+  const multivariateFilter = excludeMultivariate === true ? (ds) => !ds.extension.isMultivariate : () => true;
   const topicFilter = topic === "all" ? () => true : makeTopicFilter(topic);
-  const timeFilter = time === "all" ? () => true : makeTimeFilter(time);
-  if (timeFilter.error) return timeFilter;
+  const yearFilter = year === "all" ? () => true : makeYearFilter(year);
+  if (yearFilter.error) return yearFilter;
   const geoFilter = geo === "all" ? () => true : makeGeoFilter(geo);
   if (geoFilter.error) return geoFilter;
-  return (ds) => topicFilter(ds) && timeFilter(ds) && geoFilter(ds);
+  return (ds) => topicFilter(ds) && multivariateFilter(ds) && yearFilter(ds) && geoFilter(ds);
 }

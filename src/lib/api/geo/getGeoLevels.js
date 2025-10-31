@@ -1,7 +1,8 @@
-import geoMetadata from "$lib/data/geo-metadata.json";
 import { geoLevelsArray } from "$lib/config/geo-levels.js";
 import { geoYearFilter } from "./helpers/geoFilters";
+import readData from "$lib/data";
 
+const geoMetadata = await readData("geo-metadata");
 const geoArray = Object.values(geoMetadata);
 const latestYear = Math.max(...geoArray.map(d => d.start || 0));
 

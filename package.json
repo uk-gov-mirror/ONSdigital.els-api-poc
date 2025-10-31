@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "NODE_OPTIONS=--max-old-space-size=8192 vite dev",
-    "build": "NODE_OPTIONS=--max-old-space-size=8192 vite build && node ./scripts/js-fix",
+    "build": "NODE_OPTIONS=--max-old-space-size=8192 vite build",
     "build:preview": "cross-env PUBLIC_APP_ENV=preview vite build",
     "package": "vite package",
     "preview": "vite preview",
@@ -24,11 +24,13 @@
     "@onsvisual/robo-utils": "^0.3.7",
     "@onsvisual/svelte-charts": "^0.4.11",
     "@onsvisual/svelte-components": "^1.0.12",
-    "@sveltejs/adapter-auto": "^6.0.1",
-    "@sveltejs/kit": "^2.46.3",
+    "@sveltejs/adapter-netlify": "^5.2.4",
+    "@sveltejs/adapter-node": "^5.3.3",
+    "@sveltejs/kit": "^2.46.5",
     "@sveltejs/vite-plugin-svelte": "^4.0.0",
     "@turf/boolean-point-in-polygon": "^7.2.0",
     "@turf/meta": "^7.2.0",
+    "arquero": "^8.0.3",
     "cross-env": "^7.0.3",
     "d3-dsv": "^3.0.1",
     "d3-format": "^3.1.0",
@@ -38,17 +40,17 @@
     "prettier-plugin-svelte": "^3.2.6",
     "svelte": "^5.0.0",
     "svelteplot": "^0.3.7",
+    "temporal-polyfill": "^0.3.0",
     "throttleit": "^2.1.0",
     "topojson-client": "^3.1.0",
     "topojson-server": "^3.0.1",
     "ts-node": "^10.9.2",
+    "tsx": "^4.20.6",
     "typescript": "^5.9.2",
     "vite": "^5.4.4"
   },
   "dependencies": {
-    "arquero": "^8.0.3",
-    "sirv-cli": "^1.0.0",
-    "tsx": "^4.20.6"
+    "sirv-cli": "^1.0.0"
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "4.6.1"

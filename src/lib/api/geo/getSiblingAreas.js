@@ -1,12 +1,15 @@
-import geoMetadata from "$lib/data/geo-metadata.json";
 import { geoLevels, geoLevelsLookup } from "$lib/config/geo-levels.js";
 import getChildAreas from "./getChildAreas.js";
 import { isValidAreaCode } from "../utils.js";
+import { codeToArea } from "./helpers/areaCodesNames.js";
+import readData from "$lib/data";
+
+const geoMetadata = await readData("geo-metadata");
 
 export default function getSiblingAreas(params = {}) {
-  const cdUpper = params?.code?.toUpperCase();
+  const cdUpper = (params?.code || "").toUpperCase();
   if (!isValidAreaCode(cdUpper))
-    return { error: 400, message: `${params.code} is not a valid GSS code.` };
+    return { error: 400, message: `${params?.code} is not a valid GSS code.` };
 
   const area = geoMetadata[cdUpper];
   if (!area)
@@ -25,7 +28,7 @@ export default function getSiblingAreas(params = {}) {
     : area.parents[0];
 
   return parentCode ? {
-    parent: parentCode,
-    siblings: getChildAreas({ code: parentCode, geoLevel }),
+    parent: params.includeNames ? codeToArea(parentCode) : parentCode,
+    siblings: getChildAreas({ code: parentCode, geoLevel, includeNames: params.includeNames }),
   } : {};
 }

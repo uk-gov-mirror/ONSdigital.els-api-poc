@@ -1,29 +1,12 @@
 /** @type {import('@sveltejs/kit').Config} */
-import adapter from '@sveltejs/adapter-auto';
-import { base_preview, base_prod } from "./src/app.config.js";
+import adapter_node from '@sveltejs/adapter-node';
+import adapter_netlify from '@sveltejs/adapter-netlify';
 
-const preview = process.env.PUBLIC_APP_ENV === 'preview';
-const production = process.env.NODE_ENV === 'production';
-const base = preview ? base_preview : production ? base_prod : '';
+const adapter = !!process.env.NETLIFY ? adapter_netlify : adapter_node;
 
 const config = {
 	kit: {
-		// hydrate the <div id="svelte"> element in src/app.html
-		adapter: adapter({
-			// Options below are defaults
-			pages: 'build',
-			assets: 'build',
-			strict: false,
-			fallback: preview ? '404.html' : undefined
-		}),
-		prerender: {
-			handleHttpError: 'warn',
-			handleMissingId: 'warn',
-		},
-		paths: {
-			base,
-			relative: false,
-		}
+		adapter: adapter()
 	}
 };
 

@@ -1,4 +1,6 @@
-import taxonomy from "$lib/data/taxonomy.json";
+import readData from "$lib/data";
+
+const taxonomy = await readData("taxonomy");
 
 function flattenTaxonomy(taxonomy) {
   return taxonomy

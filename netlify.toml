@@ -1,2 +1,2 @@
 [functions]
-  included_files = ["src/lib/data/json-stat.json"]
+  included_files = ["src/lib/data/**.json"]

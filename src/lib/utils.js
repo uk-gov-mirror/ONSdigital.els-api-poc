@@ -1,5 +1,4 @@
 import { resolve } from "$app/paths";
-import areaLookup from "$lib/data/geo-metadata.json";
 
 export function parseData(data) {
   const cols = Object.keys(data);
@@ -17,7 +16,18 @@ export function parseData(data) {
 export async function fetchChartData(indicator, geography = "ltla", time = "latest") {
   const url = resolve(`/api/v0/data.json?indicator=${indicator}&geo=${geography}&time=${time}`);
   const data = await (await fetch(url)).json();
-  // console.log({ data })
+  console.log({data})
+  return parseData(data[indicator]);
+}
+
+export async function fetchChartDataV1(indicator, dimensions) {
+  dimensions = {...{geo: "ltla", time: "latest"}, ...dimensions}; // Use default geo + time filters unless explicitly set
+  const coreDims = ["geo", "time"];
+  const dims = Object.entries(dimensions)
+    .map(d => coreDims.includes(d[0]) ? `${d[0]}=${[d[1]].join(",")}` : `dimension_${d[0]}=${d[1].join(",")}`);
+  const url = resolve(`/api/v1/data.cols.json?indicator=${indicator}${dims.length > 0 ? `&${dims.join("&")}` : ""}`);
+  const data = await (await fetch(url)).json();
+  console.log({data});
   return parseData(data[indicator]);
 }
 
