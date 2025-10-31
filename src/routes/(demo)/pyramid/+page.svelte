@@ -88,7 +88,7 @@
     marginTop={true}
     width="medium"
   >
-    {#await fetchChartDataV1("population-by-age-and-sex", {sex: ["female", "male"]})}
+    {#await fetchChartDataV1("population-by-age-and-sex", {time: "2023"}, {sex: ["female", "male"]})}
       Fetching chart data
     {:then chartData}
       <BarcodeJoined
@@ -105,7 +105,7 @@
     marginTop={true}
     width="medium"
   >
-    {#await fetchChartDataV1("population-by-age-and-sex", {sex: ["female", "male"]})}
+    {#await fetchChartDataV1("population-by-age-and-sex", {time: "2023"}, {sex: ["female", "male"]})}
       Fetching chart data
     {:then chartData}
       <Pyramid
