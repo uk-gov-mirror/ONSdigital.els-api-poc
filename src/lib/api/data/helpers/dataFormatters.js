@@ -122,9 +122,8 @@ function makeRowFill(includeNames, includeStatus, measures = null) {
 
 function makeRowPush(rows, includeStatus, measures = null) {
 	const valueKey = getValueKey(measures);
-	console.log(valueKey);
 	return includeStatus ?
-		(row) => { if (row[valueKey] != null && row.status != null) rows.push(row); } :
+		(row) => { if (row[valueKey] != null || row.status != null) rows.push(row); } :
 		(row) => { if (row[valueKey] != null) rows.push(row); };
 }
 
