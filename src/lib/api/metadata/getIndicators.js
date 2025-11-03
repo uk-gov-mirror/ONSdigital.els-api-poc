@@ -3,8 +3,16 @@ import readData from "$lib/data";
 
 const rawMetadata = await readData("json-stat");
 
-function formatMetadata(ds, includeDims = false) {
+function formatMetadata(ds, minimalMetadata = false, includeDims = false) {
   if (!ds) return {};
+  if (minimalMetadata) return {
+    label: ds.label,
+    slug: ds.extension.slug,
+    topic: ds.extension.topic,
+    subTopic: ds.extension.subTopic,
+    description: ds.extension.subtitle
+  };
+
   const metadata = {label: ds.label, ...ds.extension, caveats: ds.note};
   if (includeDims) metadata.dimensions = ds.id.map(key => {
     const dim = {
@@ -21,7 +29,7 @@ export default function getIndicators(params = {}) {
   if (params.indicator) {
     const indicator = rawMetadata.link.item.find(ds => ds.extension.slug === params.indicator);
     if (!indicator) return {error: "Invalid indicator code"};
-    return formatMetadata(indicator, params.includeDims);
+    return formatMetadata(indicator, params.minimalMetadata, params.includeDims);
   }
 
   const filter = makeDatasetFilter(params.topic, params.excludeMultivariate, params.hasGeo, params.hasYear);
@@ -29,7 +37,7 @@ export default function getIndicators(params = {}) {
 
   const metadata = rawMetadata.link.item
     .filter(filter)
-    .map(ds => formatMetadata(ds, params.includeDims));
+    .map(ds => formatMetadata(ds, params.minimalMetadata, params.includeDims));
   
   return metadata;
 }

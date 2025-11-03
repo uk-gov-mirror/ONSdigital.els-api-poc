@@ -1,17 +1,5 @@
-import readData from "$lib/data";
+import getIndicators from "./getIndicators.js";
 import { capitalise } from "$lib/utils.js";
-
-const collection = await readData("json-stat");
-
-function makeTaxonomy(collection) {
-  return collection.link.item.map(ds => ({
-    label: ds.label,
-    slug: ds.extension.slug,
-    topic: ds.extension.topic,
-    subTopic: ds.extension.subTopic,
-    description: ds.extension.subtitle
-  }));
-}
 
 function nestTaxonomy(taxonomy) {
   const topicsIndex = {};
@@ -79,6 +67,6 @@ function nestTaxonomy(taxonomy) {
 // }
 
 export default function getTaxonomy(params = {}) {
-  const taxonomy = makeTaxonomy(collection)
+  const taxonomy = getIndicators({...params, minimalMetadata: true});
   return params.flat ? taxonomy : nestTaxonomy(taxonomy);
 }
