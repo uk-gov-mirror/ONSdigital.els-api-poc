@@ -8,15 +8,21 @@ function makeAreaLookup(codes) {
 	return Object.fromEntries(codes.map(cd => [cd, geoLookup[cd]?.areanm]));
 }
 
+function dimValuesToLabels(dim, cube) {
+	if (cube.dimension[dim.key].category.label)
+		dim.values = dim.values.map(v => [cube.dimension[dim.key].category.label[v[0]], v[1]]);
+}
+
 export function dimsToIndex(dims) {
 	let index = 0;
 	for (const dim of dims) index = (index * dim.count) + dim.value[1];
 	return index;
 }
 
-export function dimsToItems(dims) {
+export function dimsToItems(dims, cube) {
 	let items = [[0]];
 	for (const dim of dims) {
+		dimValuesToLabels(dim, cube);
 		const newItems = [];
 		for (const item of items) {
 			for (const val of dim.values) {
@@ -130,7 +136,7 @@ function makeRowPush(rows, includeStatus, measures = null) {
 // Wide format. Includes a separate value column for each measure
 export function itemsToRows(cube, dims, items, measures, includeIndicator = false, includeNames = false, includeStatus = false) {
 	const rows = [];
-	const rowTemplate = includeIndicator ? {indicator: cube.extension.slug} : {};
+	const rowTemplate = includeIndicator ? {indicator: cube.label} : {};
 	const rowFill = makeRowFill(includeNames, includeStatus, measures);
 	const rowPush = makeRowPush(rows, includeStatus, measures);
 	for (const item of items) {
@@ -159,7 +165,7 @@ export function toRows(cube, dims, includeIndicator, includeNames, includeStatus
 	const measures = dims[dims.length - 1];
 	if (measures.values.length === 0) return [];
 
-	const items = dimsToItems(dims.slice(0, -1));
+	const items = dimsToItems(dims.slice(0, -1), cube);
 	const rows = itemsToRows(cube, dims, items, measures, includeIndicator, includeNames, includeStatus);
 
 	return includeIndicator ? rows : [cube.extension.slug, rows];
@@ -229,7 +235,7 @@ export function itemsToCols(cube, dims, items, measures, includeNames = false, i
 export function toCols(cube, dims, includeNames, includeStatus) {
 	const measures = dims[dims.length - 1];
 
-	const items = dimsToItems(dims.slice(0, -1));
+	const items = dimsToItems(dims.slice(0, -1), cube);
 	const data = itemsToCols(cube, dims, items, measures, includeNames, includeStatus);
 
 	return [cube.extension.slug, data];
