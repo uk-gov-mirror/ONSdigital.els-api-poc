@@ -8,7 +8,7 @@ export function GET({ params, url }) {
   const excludeMultivariate = getParam(url, "excludeMultivariate", false);
   const hasGeo = getParam(url, "hasGeo", "all");
   const hasYear = getParam(url, "hasYear", "all");
-  const includeDims = getParam(url, "includeDims", false);
+  const fullDims = getParam(url, "fullDims", false);
 
   const metadata = getIndicators({
     indicator,
@@ -16,7 +16,7 @@ export function GET({ params, url }) {
     excludeMultivariate,
     hasGeo,
     hasYear,
-    includeDims
+    fullDims
   });
 
   if (metadata.error) error(400, metadata.error);

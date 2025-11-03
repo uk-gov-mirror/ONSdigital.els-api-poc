@@ -1,43 +1,51 @@
 import { makeDatasetFilter } from "./helpers/datasetFilters.js";
+import { formatDimension } from "./helpers/formatMetadata.js";
 import readData from "$lib/data";
 
 const rawMetadata = await readData("json-stat");
 
-function formatMetadata(ds, minimalMetadata = false, includeDims = false) {
+function formatMetadata(ds, minimalMetadata = false, fullDims = false) {
   if (!ds) return {};
-  if (minimalMetadata) return {
-    label: ds.label,
-    slug: ds.extension.slug,
-    topic: ds.extension.topic,
-    subTopic: ds.extension.subTopic,
-    description: ds.extension.subtitle
-  };
-
-  const metadata = {label: ds.label, ...ds.extension, caveats: ds.note};
-  if (includeDims) metadata.dimensions = ds.id.map(key => {
-    const dim = {
-      key,
-      label: ds.dimension[key].label,
-      values: Object.keys(ds.dimension[key].category.index)
+  if (minimalMetadata)
+    return {
+      label: ds.label,
+      slug: ds.extension.slug,
+      topic: ds.extension.topic,
+      subTopic: ds.extension.subTopic,
+      description: ds.extension.subtitle,
     };
-    return dim;
-  });
+
+  const metadata = { label: ds.label, ...ds.extension, caveats: ds.note };
+  metadata.dimensions = ds.id.map((key) => formatDimension(ds, key, fullDims));
   return metadata;
 }
 
 export default function getIndicators(params = {}) {
   if (params.indicator) {
-    const indicator = rawMetadata.link.item.find(ds => ds.extension.slug === params.indicator);
-    if (!indicator) return {error: "Invalid indicator code"};
-    return formatMetadata(indicator, params.minimalMetadata, params.includeDims);
+    const indicator = rawMetadata.link.item.find(
+      (ds) => ds.extension.slug === params.indicator
+    );
+    if (!indicator) return { error: "Invalid indicator code" };
+    return formatMetadata(
+      indicator,
+      params.minimalMetadata,
+      params.fullDims
+    );
   }
 
-  const filter = makeDatasetFilter(params.topic, params.excludeMultivariate, params.hasGeo, params.hasYear);
+  const filter = makeDatasetFilter(
+    params.topic,
+    params.excludeMultivariate,
+    params.hasGeo,
+    params.hasYear
+  );
   if (filter.error) return filter;
 
   const metadata = rawMetadata.link.item
     .filter(filter)
-    .map(ds => formatMetadata(ds, params.minimalMetadata, params.includeDims));
-  
+    .map((ds) =>
+      formatMetadata(ds, params.minimalMetadata, params.fullDims)
+    );
+
   return metadata;
 }
