@@ -2,8 +2,8 @@
 import filterAllDatasets from "./filterAllDatasets.js";
 import { makeFilter, makeGeoFilter } from "./helpers/dataFilters.js";
 import { toCSVW, csvSerialise } from "./helpers/dataFormatters.js";
-import { isValidDate, isValidAreaCode } from "$lib/api/utils.js";
-import { hasGeo } from "$lib/api/metadata/helpers/datasetFilters.js";
+import { isValidDate } from "$lib/api/utils.js";
+import { makeGeoFilter } from "$lib/api/metadata/helpers/datasetFilters.js";
 import readData from "$lib/data";
 
 const cube = await readData("json-stat");
@@ -27,12 +27,9 @@ export default function filterCollection(params = {}) {
 
 	// Filter for datasets that include a specific geography
 	if (params.hasGeo !== "any") {
-		if (isValidAreaCode(params.hasGeo)) {
-			datasets = datasets.filter(ds => hasGeo(ds, params.hasGeo));
-			// hasGeo also used later to filter for time periods that include this GSS code
-			filters.hasGeo = params.hasGeo; 
-		}
-		else return {error: 400, message: "The value of 'hasGeo' must be a valid GSS code."};
+		const geoFilter = makeGeoFilter(params.hasGeo);
+		if (geoFilter.error) return geoFilter;
+		datasets = datasets.filter(geoFilter);
 	}
 
 	// Return only CSVW metadata, if requested
