@@ -15,8 +15,6 @@
   export let keyedData;
   export let data;
 
-  $: console.log(data)
-
   let w = 400;
 
   $: xRangeMax = (w - gutter) / 2;
@@ -52,7 +50,6 @@
 
   function calculateFemalePoints(area, xScale) {
     const data = keyedData[area];
-    console.log(data)
     return data
       .filter((d) => d[zKey] === zDomain[0])
       .flatMap((d) => [
