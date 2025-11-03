@@ -1,29 +1,23 @@
 import getIndicators from "./getIndicators.js";
 import { capitalise } from "$lib/utils.js";
 
+function makeItem(slug, label = null, description = null) {
+  const item = {label: label || capitalise(slug), slug};
+  if (description) return {...item, description};
+  return {...item, children: {}};
+}
+
 function nestTaxonomy(taxonomy) {
   const topicsIndex = {};
 
   for (const ind of taxonomy) {
-    const indicator = {
-      label: ind.label,
-      slug: ind.slug,
-      description: ind.description
-    };
-    if (!topicsIndex[ind.topic]) topicsIndex[ind.topic] = {
-      label: capitalise(ind.topic),
-      slug: ind.topic,
-      children: {}
-    };
+    const indicator = makeItem(ind.slug, ind.label, ind.description);
+    if (!topicsIndex[ind.topic]) topicsIndex[ind.topic] = makeItem(ind.topic);
     if (ind.topic === ind.subTopic) {
       topicsIndex[ind.topic].children[ind.slug] = indicator;
     } else {
       if (!topicsIndex[ind.topic].children[ind.subTopic])
-        topicsIndex[ind.topic].children[ind.subTopic] = {
-          label: capitalise(ind.subTopic),
-          slug: ind.subTopic,
-          children: {}
-      };
+        topicsIndex[ind.topic].children[ind.subTopic] = makeItem(ind.subTopic);
       topicsIndex[ind.topic].children[ind.subTopic].children[ind.slug] = indicator;
     }
   }
