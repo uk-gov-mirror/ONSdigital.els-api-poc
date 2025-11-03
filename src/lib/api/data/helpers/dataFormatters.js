@@ -191,8 +191,7 @@ function makeColFill(includeNames, includeStatus, cols, measures = null) {
 		const lastIndex = data[valueKey].length - 1;
 		if (data[valueKey][lastIndex] == null && data.status[lastIndex] == null) removeLast(data);
 	} : (data) => {
-		const lastIndex = data[valueKey].length - 1;
-		if (data[valueKey][lastIndex] == null) removeLast(data);
+		if (data[valueKey][data[valueKey].length - 1] == null) removeLast(data);
 	};
 	return includeNames && includeStatus ? (data, item, dims, cube) => {
 		pushVals(data, item, dims, cube);
