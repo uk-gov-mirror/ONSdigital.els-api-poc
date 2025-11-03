@@ -3,7 +3,7 @@ import filterAllDatasets from "./filterAllDatasets.js";
 import { makeFilter, makeGeoFilter } from "./helpers/dataFilters.js";
 import { toCSVW, csvSerialise } from "./helpers/dataFormatters.js";
 import { isValidDate } from "$lib/api/utils.js";
-import { makeGeoFilter } from "$lib/api/metadata/helpers/datasetFilters.js";
+import { makeDatasetGeoFilter } from "$lib/api/metadata/helpers/datasetFilters.js";
 import readData from "$lib/data";
 
 const cube = await readData("json-stat");
@@ -27,7 +27,7 @@ export default function filterCollection(params = {}) {
 
 	// Filter for datasets that include a specific geography
 	if (params.hasGeo !== "any") {
-		const geoFilter = makeGeoFilter(params.hasGeo);
+		const geoFilter = makeDatasetGeoFilter(params.hasGeo);
 		if (geoFilter.error) return geoFilter;
 		datasets = datasets.filter(geoFilter);
 	}
