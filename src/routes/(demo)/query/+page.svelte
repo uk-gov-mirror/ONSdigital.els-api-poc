@@ -26,7 +26,7 @@
   const indicatorsList = [
     {id: "all", label: "All indicators"},
     {id: "topic", label: "Select by topic"},
-    ...data.indicators.map(ind => ({id: ind.key, label: ind.label})).sort((a, b) => a.label.localeCompare(b.label))
+    ...data.indicators.map(ind => ({id: ind.slug, label: ind.label})).sort((a, b) => a.label.localeCompare(b.label))
   ];
   let indicator = $state(indicatorsList[2]);
 

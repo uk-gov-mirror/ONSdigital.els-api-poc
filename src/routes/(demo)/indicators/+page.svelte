@@ -25,14 +25,14 @@
 
 {#snippet indicator(ind)}
   <p>
-    <a href="{resolve(`/indicators/${ind.key}`)}">{ind.label}</a><br/>
+    <a href="{resolve(`/indicators/${ind.slug}`)}">{ind.label}</a><br/>
     {ind.description}
   </p>
 {/snippet}
 
 <NavSections cls="nav-sections">
   {#each data.taxonomy as theme}
-    <NavSection title={theme.label} id={theme.key}>
+    <NavSection title={theme.label} id={theme.slug}>
       {#each theme.children as child}
         {#if child.description}
           {@render indicator(child)}

@@ -36,7 +36,7 @@ export async function fetchTopicsData(selected, geography = "ltla", time = "late
   const dataUrl = resolve(`/api/v0/data.json?geo=${geography}&time=${time}`);
   const data = await (await fetch(dataUrl)).json();
 
-  const metaUrl = resolve(`/api/v1/metadata/indicators?geo=${selected.areacd}`);
+  const metaUrl = resolve(`/api/v1/metadata/indicators?hasGeo=${selected.areacd}`);
   const metadata = await (await fetch(metaUrl)).json();
 
   // Filter out empty datasets
@@ -51,4 +51,8 @@ export async function fetchTopicsData(selected, geography = "ltla", time = "late
       indicators: indicators.filter(ind => ind.meta.topic === topic)
     }));
   return topics;
+}
+
+export function capitalise(str) {
+  return `${str[0].toUpperCase()}${str.slice(1)}`;
 }
