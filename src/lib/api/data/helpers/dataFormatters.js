@@ -8,15 +8,21 @@ function makeAreaLookup(codes) {
 	return Object.fromEntries(codes.map(cd => [cd, geoLookup[cd]?.areanm]));
 }
 
+function dimValuesToLabels(dim, cube) {
+	if (cube.dimension[dim.key].category.label)
+		dim.values = dim.values.map(v => [cube.dimension[dim.key].category.label[v[0]], v[1]]);
+}
+
 export function dimsToIndex(dims) {
 	let index = 0;
 	for (const dim of dims) index = (index * dim.count) + dim.value[1];
 	return index;
 }
 
-export function dimsToItems(dims) {
+export function dimsToItems(dims, cube) {
 	let items = [[0]];
 	for (const dim of dims) {
+		dimValuesToLabels(dim, cube);
 		const newItems = [];
 		for (const item of items) {
 			for (const val of dim.values) {
@@ -82,13 +88,20 @@ export function toJSONStat(qb, dims, includeNames = false, includeStatus = false
 	return cube;
 }
 
+function getValueKey(measures) {
+	if (!measures) return "value";
+	const keys = measures.values.map(val => val?.[0]);
+	return keys.includes("value") ? "value" : keys?.[0];
+}
+
 // This bulky function runs once to generate the most minimal row function based on the selected params
 // This saves a number of condiditional tests for each individual row added
 function makeRowFill(includeNames, includeStatus, measures = null) {
+	const measuresCount = measures?.count || 1;
 	const addMeasures = ((measures) => {
 		return measures ? (row, item, cube) => {
 			for (let j = 0; j < measures.values.length; j ++) {
-				row[measures.values[j][0]] = cube.value[(item[0] * measures.count) + measures.values[j][1]]
+				row[measures.values[j][0]] = cube.value[(item[0] * measuresCount) + measures.values[j][1]]
 			}
 		} : (row, item, cube) => row.value = cube.value[item[0]];
 	})(measures);
@@ -102,7 +115,7 @@ function makeRowFill(includeNames, includeStatus, measures = null) {
 		for (let i = 1; i < dims.length - 1; i ++) row[dims[i].key] = item[i + 1];
 		addMeasures(row, item, cube);
 	}
-	const addStatus = (row, item, cube) => row.status = cube.status[item[0] * measures.count] || null
+	const addStatus = (row, item, cube) => row.status = cube.status[item[0] * measuresCount] || null
 	return includeNames && includeStatus ? (row, item, dims, cube) => {
 		addValsWithName(row, item, dims, cube);
 		addStatus(row, item, cube);
@@ -113,15 +126,23 @@ function makeRowFill(includeNames, includeStatus, measures = null) {
 	} : addVals;
 }
 
+function makeRowPush(rows, includeStatus, measures = null) {
+	const valueKey = getValueKey(measures);
+	return includeStatus ?
+		(row) => { if (row[valueKey] != null || row.status != null) rows.push(row); } :
+		(row) => { if (row[valueKey] != null) rows.push(row); };
+}
+
 // Wide format. Includes a separate value column for each measure
 export function itemsToRows(cube, dims, items, measures, includeIndicator = false, includeNames = false, includeStatus = false) {
 	const rows = [];
-	const rowTemplate = includeIndicator ? {indicator: cube.extension.slug} : {};
+	const rowTemplate = includeIndicator ? {indicator: cube.label} : {};
 	const rowFill = makeRowFill(includeNames, includeStatus, measures);
+	const rowPush = makeRowPush(rows, includeStatus, measures);
 	for (const item of items) {
 		const row = {...rowTemplate};
 		rowFill(row, item, dims, cube);
-		rows.push(row);
+		rowPush(row);
 	}
 	return rows;
 }
@@ -131,10 +152,11 @@ export function itemsToRowsLong(cube, dims, items, includeIndicator = false, inc
 	const rows = [];
 	const rowTemplate = includeIndicator ? {indicator: cube.extension.slug} : {};
 	const rowFill = makeRowFill(includeNames, includeStatus);
+	const rowPush = makeRowPush(rows, includeStatus);
 	for (const item of items) {
 		const row = {...rowTemplate};
 		rowFill(row, item, dims);
-		rows.push(row);
+		rowPush(row);
 	}
 	return rows;
 }
@@ -143,17 +165,21 @@ export function toRows(cube, dims, includeIndicator, includeNames, includeStatus
 	const measures = dims[dims.length - 1];
 	if (measures.values.length === 0) return [];
 
-	const items = dimsToItems(dims.slice(0, -1));
+	const items = dimsToItems(dims.slice(0, -1), cube);
 	const rows = itemsToRows(cube, dims, items, measures, includeIndicator, includeNames, includeStatus);
 
-	return includeIndicator ? rows : [cube.extension.slug, rows];
+	return [cube.extension.slug, rows];
 }
 
-function makeColFill(includeNames, includeStatus, measures = null) {
+// This bulky function runs once to generate the most minimal col function based on the selected params
+// This saves a number of condiditional tests for each individual row added
+function makeColFill(includeNames, includeStatus, cols, measures = null) {
+	const measuresCount = measures?.count || 1;
+	const valueKey = getValueKey(measures);
 	const pushMeasures = ((measures) => {
 		return measures ? (data, item, cube) => {
 			for (let j = 0; j < measures.values.length; j ++) {
-				data[measures.values[j][0]].push(cube.value[(item[0] * measures.count) + measures.values[j][1]]);
+				data[measures.values[j][0]].push(cube.value[(item[0] * measuresCount) + measures.values[j][1]]);
 			}
 		} : (data, item, cube) => data.value.push(cube.value[item[0]]);
 	})(measures);
@@ -162,28 +188,43 @@ function makeColFill(includeNames, includeStatus, measures = null) {
 		pushMeasures(data, item, cube);
 	}
 	const pushName = (data) => data.areanm.push(geoLookup[data.areacd[data.areacd.length - 1]]?.areanm || null);
-	const pushStatus = (data, item, cube) => data.status.push(cube.status[item[0] * measures.count] || null);
+	const pushStatus = (data, item, cube) => data.status.push(cube.status[item[0] * measuresCount] || null);
+	const removeLast = (data) => {
+		for (const col of cols) data[col].pop();
+	}
+	const removeIfNull = includeStatus ? (data) => {
+		const lastIndex = data[valueKey].length - 1;
+		if (data[valueKey][lastIndex] == null && data.status[lastIndex] == null) removeLast(data);
+	} : (data) => {
+		if (data[valueKey][data[valueKey].length - 1] == null) removeLast(data);
+	};
 	return includeNames && includeStatus ? (data, item, dims, cube) => {
 		pushVals(data, item, dims, cube);
 		pushName(data);
 		pushStatus(data, item, cube);
+		removeIfNull(data);
 	} : includeNames ? (data, item, dims, cube) => {
 		pushVals(data, item, dims, cube);
 		pushName(data);
+		removeIfNull(data);
 	} : includeStatus ? (data, item, dims, cube) => {
 		pushVals(data, item, dims, cube);
 		pushStatus(data, item, cube);
-	} : pushVals;
+		removeIfNull(data);
+	} : (data, item, dims, cube) => {
+		pushVals(data, item, dims, cube);
+		removeIfNull(data);
+	}
 }
 
 export function itemsToCols(cube, dims, items, measures, includeNames = false, includeStatus = false) {
 	const data = {};
-	const colFill = makeColFill(includeNames, includeStatus, measures);
 	for (const dim of dims.slice(0, -1)) {
 		data[dim.key] = [];
 		if (includeNames && dim.key === "areacd") data.areanm = [];
 	};
 	for (const val of measures.values) data[val[0]] = [];
+	const colFill = makeColFill(includeNames, includeStatus, Object.keys(data), measures);
 	if (includeStatus) data.status = [];
 	for (const item of items) {
 		colFill(data, item, dims, cube);
@@ -194,7 +235,7 @@ export function itemsToCols(cube, dims, items, measures, includeNames = false, i
 export function toCols(cube, dims, includeNames, includeStatus) {
 	const measures = dims[dims.length - 1];
 
-	const items = dimsToItems(dims.slice(0, -1));
+	const items = dimsToItems(dims.slice(0, -1), cube);
 	const data = itemsToCols(cube, dims, items, measures, includeNames, includeStatus);
 
 	return [cube.extension.slug, data];
@@ -220,72 +261,78 @@ export function csvSerialise(datasets) {
 	return csvFormat(rows, cols);
 }
 
-export function toCSVW(datasets, measure, href) {
+function getDimColumns(datasets) {
+	const cols = {};
+	for (const ds of datasets) {
+		const keys = ds.id.slice(0, -1);
+		for (const key of keys) {
+			cols[key] = {
+				name: key,
+				titles: ds.dimension[key].label || key,
+				datatype: key === "period" ? "date" : "string"
+			};
+		}
+	}
+	return Object.values(cols);
+}
+
+function getMeasureColumns(datasets, measure) {
+	const filter = [measure].flat();
+	const cols = {};
+	for (const ds of datasets) {
+		const cat = ds.dimension.measure.category;
+		for (const key in cat.index) {
+			if (filter[0] === "all" || filter.includes(key)) 
+				cols[key] = {name: key, titles: cat.label[key], datatype: "number"};
+		}
+	}
+	return Object.values(cols);
+}
+
+function makeCSVWColumns(datasets, measure, singleIndicator, includeNames, includeStatus) {
+	const cols = [{
+		name: "indicator",
+		titles: "Indicator",
+		datatype: "string"
+	}];
+	cols.push(...getDimColumns(datasets));
+	cols.push(...getMeasureColumns(datasets, measure));
+	if (includeNames) cols.splice(2, 0, {
+		name: "areanm",
+		titles: "Area name",
+		datatype: "string"
+	});
+	if (includeStatus) cols.push({
+		name: "status",
+		titles: "Status",
+		datatype: "string"
+	});
+	if (singleIndicator) cols.shift();
+	return cols;
+}
+
+export function toCSVW(datasets, measure, href, singleIndicator, includeNames = false, includeStatus = false) {
+	const dateString = (new Date()).toISOString().slice(0, 10);
 	let metadata = {
-		"@context": "http://www.w3.org/ns/csvw",
+		"@context": ["http://www.w3.org/ns/csvw", {"@language": "en"}],
 		url: href.replace(".csvw", ".csv"),
-		"rdfs:label": "Filtered datasets from ONS Explore Local Statistics API",
+		"rdfs:label": `Combined datasets retrieved from Explore Local Statistics on ${dateString}`,
 	}
 	if (datasets.length === 1) {
 		const ds = datasets[0];
-		const sourceOrg = ds.extension.source[0].href.split("/").slice(0, 3).join("/") + "/";
 		metadata = {
 			...metadata,
-			"rdfs:label": "Filtered dataset from ONS Explore Local Statistics API",
+			"rdfs:label": `Dataset retrieved from Explore Local Statistics on ${dateString}`,
 			"dc:title": ds.label,
-			"rdfs:comment": ds.extension.description,
-			"dc:issued": {
-					"@type": "date",
-					"@value": ds.updated
-			},
-			"dc:creator": {
-					"@id": sourceOrg
-			},
-			"dc:publisher": {
-					"@id": sourceOrg
-			},
-			"dcat:landingPage": {
-					"@id": ds.extension.source[0].url
-			}
+			"dc:description": ds.extension.description,
+			"dc:creator": ds.source,
+			"dc:source": ds.extension.source[0].url,
+			"dc:publisher": "Office for National Statistics",
+			"dc:issued": ds.updated
 		}
 	}
-	let measures = [
-		{
-			titles: "Lower confidence interval",
-			name: "lci",
-			datatype: "number"
-		},
-		{
-			titles: "Upper confidence interval",
-			name: "uci",
-			datatype: "number"
-		},
-		{
-			titles: "Value",
-			name: "value",
-			datatype: "number"
-		}
-	];
-	if (measure !== "all") measures = measures.filter(m => [measure].flat().includes(m.name));
-	metadata.tableSchema = {
-		columns: [
-			{
-				titles: "Indicator",
-				name: "indicator",
-				datatype: "string"
-			},
-			{
-				titles: "Time period",
-				name: "period",
-				datatype: "date"
-			},
-			{
-				titles: "Area code",
-				name: "areacd",
-				datatype: "string"
-			},
-			...measures
-		]
+	metadata.tatableSchema = {
+		columns: makeCSVWColumns(datasets, measure, singleIndicator, includeNames, includeStatus)
 	};
 	return metadata;
 }

@@ -96,5 +96,6 @@ export function filterTime(values, params = {}) {
 }
 
 export function filterTimeForGeo(ds, values, geo) {
+	if (geo in geoLevels) return values;
 	return values.filter(val => hasObservation(ds, {areacd: geo, period: val[0], measure: "value"}));
 }

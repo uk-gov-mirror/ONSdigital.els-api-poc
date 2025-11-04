@@ -24,7 +24,7 @@
 
   const xDomain = [0, Math.max(...data.map((d) => d[xKey]))];
   const yDomain = Array.from(new Set(data.map((d) => d[yKey])));
-  const zDomain = ["female", "male"];
+  const zDomain = ["Female", "Male"];
   const yMax = barHeight * yDomain.length;
   const barGap = 1; // actual size of barGap in pixels
   const barGapScale = (1 / barHeight) * barGap;
@@ -38,10 +38,10 @@
     const filtered = keyedData[area] || [];
     return {
       Male: filtered
-        .filter((d) => d.sex === "male")
+        .filter((d) => d.sex === "Male")
         .reduce((acc, d) => acc + d.value, 0),
       Female: filtered
-        .filter((d) => d.sex === "female")
+        .filter((d) => d.sex === "Female")
         .reduce((acc, d) => acc + d.value, 0),
     };
   }
@@ -304,6 +304,10 @@
     alignment-baseline: middle;
     font-family: "Open Sans";
     font-size: 14px;
+  }
+
+  .chart-hovered, .chart-selected {
+    pointer-events: none;
   }
 
   .chart-hovered > polyline {

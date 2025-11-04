@@ -1,4 +1,6 @@
 import { resolve } from "$app/paths";
+import { format } from "d3-format";
+import { utcFormat } from "d3-time-format";
 
 export function parseData(data) {
   const cols = Object.keys(data);
@@ -56,4 +58,21 @@ export async function fetchTopicsData(selected, geography = "ltla", time = "late
 
 export function capitalise(str) {
   return `${str[0].toUpperCase()}${str.slice(1)}`;
+}
+
+export function makeValueFormatter(dp) {
+  return format(`,.${dp ?? 0}f`);
+}
+
+export function makePeriodFormatter(periodFormat) {
+  const parsePeriod = (p) => new Date(p.split("/")[0]);
+  const range = +periodFormat.match(/^\d+/)?.[0];
+  const formatter = periodFormat === "month" ? utcFormat("%b %Y") :
+    periodFormat === "quarter" ? utcFormat("Q%q %Y") :
+    periodFormat === "year" ? utcFormat("%Y") :
+    periodFormat === "academic-year" ? (d) => {const year = d.getFullYear(); return `AY ${year}-${(year + 1) % 100}`} :
+    periodFormat === "financial-year" ? (d) => {const year = d.getFullYear(); return `FY ${year}-${(year + 1) % 100}`} :
+    range ? (d) => {const year = d.getFullYear(); return `${year}-${(year + range) % 100}`} :
+    utcFormat("%-d %b %Y");
+  return (p) => formatter(parsePeriod(p));
 }
