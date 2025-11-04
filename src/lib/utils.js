@@ -6,9 +6,10 @@ export function parseData(data) {
   const cols = Object.keys(data);
   const rows = [];
 
-  for (let i = 0; i < data[cols[0]].length; i ++) {
+  for (let i = 0; i < data[cols[0]].length; i++) {
     const row = {};
     for (const col of cols) row[col] = data[col][i];
+    // row.areanm = areaLookup[row.areacd].areanm;
     rows.push(row);
   }
   return rows;
@@ -44,7 +45,7 @@ export async function fetchTopicsData(selected, geography = "ltla", time = "late
   // Filter out empty datasets
   const indicators = metadata
     .filter(meta => !exclude.includes(meta.slug))
-    .map(meta => ({meta, data: parseData(data[meta.slug])}));
+    .map(meta => ({ meta, data: parseData(data[meta.slug]) }));
 
   const topics = Array.from(new Set(indicators.map(ind => ind.meta.topic)))
     .map(topic => ({
