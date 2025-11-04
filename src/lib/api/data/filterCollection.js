@@ -34,7 +34,7 @@ export default function filterCollection(params = {}) {
 
 	// Return only CSVW metadata, if requested
 	if (params.format === "csvw") {
-		const metadata = toCSVW(datasets, params.measure, params.href);
+		const metadata = toCSVW(datasets, params.measure, params.href, singleIndicator, params.includeNames, params.includeStatus);
 		return {format: "json", data: metadata};
 	}
 

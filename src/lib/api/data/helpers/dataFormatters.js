@@ -261,72 +261,77 @@ export function csvSerialise(datasets) {
 	return csvFormat(rows, cols);
 }
 
-export function toCSVW(datasets, measure, href) {
+function getDimColumns(datasets) {
+	const cols = {};
+	for (const ds of datasets) {
+		const keys = ds.id.slice(0, -1);
+		for (const key of keys) {
+			cols[key] = {
+				name: key,
+				titles: ds.dimension[key].label || key,
+				datatype: key === "period" ? "date" : "string"
+			};
+		}
+	}
+	return Object.values(cols);
+}
+
+function getMeasureColumns(datasets, measure) {
+	const filter = [measure].flat();
+	const cols = {};
+	for (const ds of datasets) {
+		const cat = ds.dimension.measure.category;
+		for (const key in cat.index) {
+			if (filter[0] === "all" || filter.includes(key)) 
+				cols[key] = {name: key, titles: cat.label[key], datatype: "number"};
+		}
+	}
+	return Object.values(cols);
+}
+
+function makeCSVWColumns(datasets, measure, singleIndicator, includeNames, includeStatus) {
+	const cols = [{
+		name: "indicator",
+		titles: "Indicator",
+		datatype: "string"
+	}];
+	cols.push(...getDimColumns(datasets));
+	cols.push(...getMeasureColumns(datasets, measure));
+	if (includeNames) cols.splice(2, 0, {
+		name: "areanm",
+		titles: "Area name",
+		datatype: "string"
+	});
+	if (includeStatus) cols.push({
+		name: "status",
+		titles: "Status",
+		datatype: "string"
+	});
+	return cols;
+}
+
+export function toCSVW(datasets, measure, href, singleIndicator, includeNames = false, includeStatus = false) {
+	const dateString = (new Date()).toISOString().slice(0, 10);
 	let metadata = {
-		"@context": "http://www.w3.org/ns/csvw",
+		"@context": ["http://www.w3.org/ns/csvw", {"@language": "en"}],
 		url: href.replace(".csvw", ".csv"),
-		"rdfs:label": "Filtered datasets from ONS Explore Local Statistics API",
+		"rdfs:label": `Combined datasets retrieved from Explore Local Statistics on ${dateString}`,
 	}
 	if (datasets.length === 1) {
 		const ds = datasets[0];
-		const sourceOrg = ds.extension.source[0].href.split("/").slice(0, 3).join("/") + "/";
 		metadata = {
 			...metadata,
-			"rdfs:label": "Filtered dataset from ONS Explore Local Statistics API",
+			"rdfs:label": `Dataset retrieved from Explore Local Statistics on ${dateString}`,
 			"dc:title": ds.label,
-			"rdfs:comment": ds.extension.description,
-			"dc:issued": {
-					"@type": "date",
-					"@value": ds.updated
-			},
-			"dc:creator": {
-					"@id": sourceOrg
-			},
-			"dc:publisher": {
-					"@id": sourceOrg
-			},
-			"dcat:landingPage": {
-					"@id": ds.extension.source[0].url
-			}
+			"dc:description": ds.extension.description,
+			"dc:creator": ds.source,
+			"dc:source": ds.extension.source[0].url,
+			"dc:publisher": "Office for National Statistics",
+			"dc:issued": ds.updated
 		}
 	}
-	let measures = [
-		{
-			titles: "Lower confidence interval",
-			name: "lci",
-			datatype: "number"
-		},
-		{
-			titles: "Upper confidence interval",
-			name: "uci",
-			datatype: "number"
-		},
-		{
-			titles: "Value",
-			name: "value",
-			datatype: "number"
-		}
-	];
-	if (measure !== "all") measures = measures.filter(m => [measure].flat().includes(m.name));
-	metadata.tableSchema = {
-		columns: [
-			{
-				titles: "Indicator",
-				name: "indicator",
-				datatype: "string"
-			},
-			{
-				titles: "Time period",
-				name: "period",
-				datatype: "date"
-			},
-			{
-				titles: "Area code",
-				name: "areacd",
-				datatype: "string"
-			},
-			...measures
-		]
+	metadata.tatableSchema = {
+		columns: makeCSVWColumns(datasets, measure, singleIndicator, includeNames, includeStatus)
 	};
 	return metadata;
 }
