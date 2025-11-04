@@ -14,7 +14,7 @@ export default function filterDataset(cube, filters, params, format, singleIndic
 		const filter = filters[key];
 		if (filter && dim.key === "period") {
 			if (filters.hasGeo) dim.values = filterTimeForGeo(cube, dim.values, filters.hasGeo);
-			dim.values = filterTime(dim.values, {time: filter});
+			dim.values = filterTime(dim.values, {time: filter, nearest: params.timeNearest});
 		}
 		else if (filter) dim.values = dim.values.filter(filter);
 		dims.push(dim);

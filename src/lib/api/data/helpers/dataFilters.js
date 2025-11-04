@@ -56,7 +56,7 @@ export function getTime(values, params = {}) {
 
 	const date = toPlainDate(params.time, true);
 	const periods = values.map(v => ({value: v, period: periodToDateRange(v[0])}));
-	const nearest = params.timeNearest || "none";
+	const nearest = params.nearest || "none";
 	const isRange = periods[0].period.length > 1;
 
 	let match;
