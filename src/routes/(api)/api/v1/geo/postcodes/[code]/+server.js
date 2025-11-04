@@ -12,8 +12,8 @@ export async function GET({ params, url }) {
   const postcode = await getPostcode(code);
   if (postcode.error) error(postcode.error, postcode.message);
 
-  const areas = await getAreasByPostcode({ postcode, year, geoLevel, groupByLevel });
+  const areas = await getAreasByPostcode({ code, postcode, year, geoLevel, groupByLevel });
   if (areas.error) error(areas.error, areas.message);
 
-  return json({ ...postcode, areas });
+  return json(areas);
 }

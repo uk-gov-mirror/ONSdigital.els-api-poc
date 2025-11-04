@@ -9,5 +9,8 @@ export async function getAreasByPostcode(params = {}) {
     groupByLevel: params.groupByLevel
   });
 
+  if (areas.error) return areas;
+
+  areas.meta = {query: params.code, ...params.postcode, ...areas.meta};
   return areas;
 }
