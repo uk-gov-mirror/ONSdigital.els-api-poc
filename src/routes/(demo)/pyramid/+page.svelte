@@ -1,19 +1,12 @@
 <script>
   import {
     Header,
-    Breadcrumb,
-    Titleblock,
     Section,
-    Grid,
-    Blockquote,
     Footer,
-    NavSection,
-    NavSections,
     Select,
     Button,
   } from "@onsvisual/svelte-components";
   import { fetchChartDataV1 } from "$lib/utils.js";
-  import Barcode from "./Barcode.svelte";
   import Pyramid from "./Pyramid.svelte";
   import BarcodeJoined from "./BarcodeJoined.svelte";
 
@@ -21,8 +14,8 @@
 
   let activeItem = $state();
   let selected = $state(['E06000001']);
-  console.log({activeItem})
-  $inspect(selected)
+  $inspect(activeItem);
+  $inspect(selected);
 
   function selectItem(e) {
     e.preventDefault();
