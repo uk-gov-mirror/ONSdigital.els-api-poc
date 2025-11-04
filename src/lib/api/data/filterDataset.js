@@ -1,7 +1,7 @@
 import { filterTime, filterTimeForGeo } from "./helpers/dataFilters.js";
 import { toJSONStat, toRows, toCols } from "./helpers/dataFormatters.js";
 
-export default function filterDataset(cube, filters, params, format) {
+export default function filterDataset(cube, filters, params, format, singleIndicator) {
 	const dims = [];
 	for (let i = 0; i < cube.id.length; i ++) {
 		const key = cube.id[i];
@@ -24,6 +24,6 @@ export default function filterDataset(cube, filters, params, format) {
 
 	if (format.slice(0, 4) === "cols") return toCols(cube, dims, params.includeNames, params.includeStatus);
 	if (format.slice(0, 4) === "rows") return toRows(cube, dims, false, params.includeNames, params.includeStatus);
-	if (format === "csv") return toRows(cube, dims, true, params.includeNames, params.includeStatus);
+	if (format === "csv") return toRows(cube, dims, !singleIndicator, params.includeNames, params.includeStatus);
 	return toJSONStat(cube, dims, params.includeNames, params.includeStatus);
 }

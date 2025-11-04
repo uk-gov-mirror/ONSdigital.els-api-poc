@@ -168,7 +168,7 @@ export function toRows(cube, dims, includeIndicator, includeNames, includeStatus
 	const items = dimsToItems(dims.slice(0, -1), cube);
 	const rows = itemsToRows(cube, dims, items, measures, includeIndicator, includeNames, includeStatus);
 
-	return includeIndicator ? rows : [cube.extension.slug, rows];
+	return [cube.extension.slug, rows];
 }
 
 // This bulky function runs once to generate the most minimal col function based on the selected params
@@ -307,6 +307,7 @@ function makeCSVWColumns(datasets, measure, singleIndicator, includeNames, inclu
 		titles: "Status",
 		datatype: "string"
 	});
+	if (singleIndicator) cols.shift();
 	return cols;
 }
 
