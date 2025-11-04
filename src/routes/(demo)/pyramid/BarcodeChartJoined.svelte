@@ -306,6 +306,10 @@
     font-size: 14px;
   }
 
+  .chart-hovered, .chart-selected {
+    pointer-events: none;
+  }
+
   .chart-hovered > polyline {
     stroke: #f39431;
     stroke-width: 3;
