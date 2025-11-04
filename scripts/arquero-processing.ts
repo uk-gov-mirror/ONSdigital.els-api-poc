@@ -75,7 +75,7 @@ function processColumns(k, metaLookup, columnValues, id, size, role, dimension) 
     
     // if it is 'measure' get the names for measure from the metadata
     if (k === 'measure') {
-        const lookup = new Map(metaLookup.objects().map(d => [d.name, d.titles[0]]))
+        const lookup = new Map(metaLookup.objects().map(d => [d.name, d.titles[d.titles.length - 1]]))
         dimension[k].category.label = Object.fromEntries(
             values.map(d => [d, lookup.get(d)])
         )
