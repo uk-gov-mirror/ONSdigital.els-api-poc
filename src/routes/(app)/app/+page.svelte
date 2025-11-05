@@ -25,32 +25,21 @@
 
   async function loadOptionsFn(query, populateResults) {
     try {
-      const url = resolve(
-        `/api/v1/geo/search/${query.toLowerCase()}?searchPostcodes=true`
-      );
+      const url = resolve(`/api/v1/geo/search/${query.toLowerCase()}?searchPostcodes=true`);
       const results = await (await fetch(url)).json();
-      populateResults(
-        results.map((d) => {
-          if (!d.areanm) d.areanm = d.areacd;
-          return d;
-        })
-      );
+      populateResults(results.data.map((d) => {
+        if (!d.areanm) d.areanm = d.areacd;
+        return d;
+      }));
     } catch {
       return populateResults([]);
     }
-  }
-  const loadOptions = throttle(loadOptionsFn, 1000);
+	}
+  const loadOptions = throttle(loadOptionsFn, 500);
 
   function gotoSelected(e) {
     e.preventDefault();
-    if (selected)
-      goto(
-        resolve(
-          selected.lng
-            ? `/areas/search?q=${selected.areacd}`
-            : `/areas/${selected.areacd}/`
-        )
-      );
+    if (selected) goto(resolve(selected.lng ? `/areas/search?q=${selected.areacd}` : `/areas/${selected.areacd}/`))
   }
 </script>
 
