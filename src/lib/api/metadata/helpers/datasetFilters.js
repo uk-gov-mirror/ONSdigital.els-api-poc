@@ -20,7 +20,7 @@ export function hasGeo(ds, geo) {
   return (geo in ds.dimension.areacd.category.index);
 }
 
-export function makeGeoFilter(geo) {
+export function makeDatasetGeoFilter(geo) {
   if (geo.match(/[EKNSW]\d{8}/))
     return (ds) => hasGeo(ds, geo);
   if (geo in geoLevels)
@@ -34,7 +34,7 @@ export function makeDatasetFilter(topic, excludeMultivariate, geo, year) {
   const topicFilter = topic === "all" ? () => true : makeTopicFilter(topic);
   const yearFilter = year === "all" ? () => true : makeYearFilter(year);
   if (yearFilter.error) return yearFilter;
-  const geoFilter = geo === "all" ? () => true : makeGeoFilter(geo);
+  const geoFilter = geo === "all" ? () => true : makeDatasetGeoFilter(geo);
   if (geoFilter.error) return geoFilter;
   return (ds) => topicFilter(ds) && multivariateFilter(ds) && yearFilter(ds) && geoFilter(ds);
 }

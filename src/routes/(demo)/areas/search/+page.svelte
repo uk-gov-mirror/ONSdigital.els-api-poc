@@ -21,7 +21,7 @@
 
 <Section>
   <p style:margin="12px 0 32px">
-    Areas matching <strong>"{data.query}"</strong>.
+    {data.meta.count} of {data.meta.total || data.meta.count} areas matching <strong>"{data.meta.query}"</strong>.
   </p>
 </Section>
 
@@ -33,9 +33,9 @@
   </List>
 {/snippet}
 
-{#if data.areas.length > 0}
+{#if data.data.length > 0}
   <NavSections cls="nav-sections">
-    {#each data.areas as geoLevel}
+    {#each data.data as geoLevel}
       <NavSection title={geoLevel.label}>
         {@render list(geoLevel.areas)}
       </NavSection>

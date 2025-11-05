@@ -1,28 +1,21 @@
 <script>
   import {
     Header,
-    Breadcrumb,
-    Titleblock,
     Section,
-    Grid,
-    Blockquote,
     Footer,
-    NavSection,
-    NavSections,
     Select,
     Button,
   } from "@onsvisual/svelte-components";
   import { fetchChartDataV1 } from "$lib/utils.js";
-  import Barcode from "./Barcode.svelte";
   import Pyramid from "./Pyramid.svelte";
   import BarcodeJoined from "./BarcodeJoined.svelte";
 
   let { data } = $props();
 
   let activeItem = $state();
-  let selected = $state(['E06000001']);
-  console.log({activeItem})
-  $inspect(selected)
+  let selected = $state(["E06000001"]);
+  console.log({ activeItem });
+  $inspect(selected);
 
   function selectItem(e) {
     e.preventDefault();
@@ -54,41 +47,20 @@
       />
       <Button small type="submit">Select area</Button>
     </form>
-    
+
     {#each selected as s}
-      <Button
-        small="true"
-        variant="secondary"
-        on:click={() => removeItem(s)}>
+      <Button small="true" variant="secondary" on:click={() => removeItem(s)}>
         {s} X
       </Button>
     {/each}
- 
-</Section>
-
-  <!-- <Section
-    title="Population by age and sex: barcode original"
-    marginTop={true}
-    width="medium"
-  >
-    {#await fetchChartData("population-by-age-and-sex", "ltla", "latest")}
-      Fetching chart data
-    {:then chartData}
-      <Barcode
-        data={chartData.filter((d) => d.sex !== "All" && d.value != null)}
-        bind:selectedArea={selected}
-      />
-    {:catch}
-      Failed to load chart data
-    {/await}
-  </Section> -->
+  </Section>
 
   <Section
     title="Population by age and sex: barcode joined lines"
     marginTop={true}
     width="medium"
   >
-    {#await fetchChartDataV1("population-by-age-and-sex", {time: "2023", sex: ["female", "male"]})}
+    {#await fetchChartDataV1( "population-by-age-and-sex", { time: "2023", sex: ["female", "male"] } )}
       Fetching chart data
     {:then chartData}
       <BarcodeJoined
@@ -105,7 +77,7 @@
     marginTop={true}
     width="medium"
   >
-    {#await fetchChartDataV1("population-by-age-and-sex", {time: "2023", sex: ["female", "male"]})}
+    {#await fetchChartDataV1( "population-by-age-and-sex", { time: "2023", sex: ["female", "male"] } )}
       Fetching chart data
     {:then chartData}
       <Pyramid

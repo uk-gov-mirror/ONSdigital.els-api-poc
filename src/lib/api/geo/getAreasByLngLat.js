@@ -27,7 +27,14 @@ export default async function getAreasByLngLat(params = {}) {
     const geojson = await (await fetch(url)).json();
     const features = geojson.features.filter(f => pointInPolygon(point, f) && yearFilter(f.properties) && geoFilter(f.properties.areacd));
 		const areas = features.map(f => makeArea(f.properties));
-    return params.groupByLevel ? groupAreasByLevel(areas) : areas;
+    return {
+      meta: {
+        lng: params.lng,
+        lat: params.lat,
+        count: areas.length
+      },
+      data: params.groupByLevel ? groupAreasByLevel(areas) : areas
+    };
   } catch {
     return {error: 400, message: "No areas found. Requested coordinates out of range."}
   }

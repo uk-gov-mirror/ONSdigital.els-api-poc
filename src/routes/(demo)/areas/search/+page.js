@@ -9,14 +9,14 @@ export const load = async ({ url, fetch }) => {
 		if (isValidPostcode(query.toUpperCase())) {
 			const path = resolve(`/api/v1/geo/postcodes/${query}?groupByLevel=true`);
 			const result = await(await fetch(path)).json();
-			return {query: result.areacd, areas: result.areas};
+			return result;
 		} else {
 			const path = resolve(`/api/v1/geo/search/${query}?groupByLevel=true`);
 			const result = await(await fetch(path)).json();
-			return {query, areas: result};
+			return result;
 		}
 	} catch(err) {
 		console.log(err);
-		return {query, areas: []};
+		return {meta: { query, total: 0 }, data: []};
 	}
 };

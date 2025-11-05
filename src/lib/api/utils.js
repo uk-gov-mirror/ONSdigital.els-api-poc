@@ -12,7 +12,7 @@ function formatParam(param) {
 
 export function getParam(url, key, fallback = undefined) {
   const param = url.searchParams.get(key);
-  if (!param) return fallback;
+  if (param == null) return fallback;
   return formatParam(param);
 }
 

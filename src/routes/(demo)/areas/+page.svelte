@@ -18,7 +18,7 @@
     try {
       const url = resolve(`/api/v1/geo/search/${query.toLowerCase()}?searchPostcodes=true`);
       const results = await (await fetch(url)).json();
-      populateResults(results.map((d) => {
+      populateResults(results.data.map((d) => {
         if (!d.areanm) d.areanm = d.areacd;
         return d;
       }));
@@ -26,7 +26,7 @@
       return populateResults([]);
     }
 	}
-  const loadOptions = throttle(loadOptionsFn, 1000);
+  const loadOptions = throttle(loadOptionsFn, 500);
 
   function gotoSelected(e) {
     e.preventDefault();

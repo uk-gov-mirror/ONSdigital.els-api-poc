@@ -14,45 +14,72 @@ function makeAreaRow(json, i) {
 
 function makeCombinedFilter(name, geo, year) {
   if (!geo && !year) return (d, i) => name(d.areanm[i]);
-  if (!geo && year) return (d, i) => name(d.areanm[i]) && year({start: d.start[i], end: d.end[i]});
+  if (!geo && year)
+    return (d, i) =>
+      name(d.areanm[i]) && year({ start: d.start[i], end: d.end[i] });
   if (geo && !year) return (d, i) => name(d.areanm[i]) && geo(d.areacd[i]);
-  return (d, i) => name(d.areanm[i]) && geo(d.areacd[i]) && year({start: d.start[i], end: d.end[i]});
+  return (d, i) =>
+    name(d.areanm[i]) &&
+    geo(d.areacd[i]) &&
+    year({ start: d.start[i], end: d.end[i] });
 }
 
 export default function getAreasByName(params = {}) {
   if (typeof params.name !== "string")
     return { error: 400, message: "No search string provided" };
 
-  if (params.name.match(/\d/)) return []; // Skip search if string contains numbers
-  const str = params.name
-    .toLowerCase()
-    .match(/[a-z'\.\-\s]/g)
-    .join(""); // Strip out special characters
-
   const limit = params.limit || 10;
-  const year = params.year === "latest" ? geoLatestYear : params.year === "all" ? null : params.year;
-  const matchesStart = [];
-  const matchesWord = [];
-  const regexStart = new RegExp(`^${str}`, "i");
-  const regexWord = new RegExp(`\b${str}`, "i");
+  const offset = params.offset || 0;
 
-  const geoLevelFilter = params.geoLevel !== "all"
-    ? makeGeoLevelFilter(params.geoLevel)
-    : null;
-  const yearFilter = year ? (area) => geoYearFilter(area, year) : null;
-  const startFilter = makeCombinedFilter((nm) => nm.match(regexStart), geoLevelFilter, yearFilter);
-  const wordFilter = makeCombinedFilter((nm) => nm.match(regexWord), geoLevelFilter, yearFilter);
+  const matches = [];
+  let areas = [];
 
-  for (let i = 0; i < areasList.areanm.length; i++) {
-    if (startFilter(areasList, i)) {
-      matchesStart.push(makeAreaRow(areasList, i));
-    } else if (wordFilter(areasList, i)) {
-      matchesWord.push(makeAreaRow(areasList, i));
+  // Skip search if string contains numbers
+  if (!params.name.match(/\d/)) {
+    const str = params.name
+      .toLowerCase()
+      .match(/[a-z'\.\-\s]/g)
+      .join(""); // Strip out special characters
+
+    const year =
+      params.year === "latest"
+        ? geoLatestYear
+        : params.year === "all"
+          ? null
+          : params.year;
+    const regexStart = new RegExp(`^${str}`, "i");
+    const regexWord = new RegExp(`\\b${str}`, "i");
+
+    const geoLevelFilter =
+      params.geoLevel !== "all" ? makeGeoLevelFilter(params.geoLevel) : null;
+    const yearFilter = year ? (area) => geoYearFilter(area, year) : null;
+    const combinedFilter = makeCombinedFilter(
+      (nm) => nm.match(regexWord),
+      geoLevelFilter,
+      yearFilter
+    );
+
+    for (let i = 0; i < areasList.areanm.length; i++) {
+      if (combinedFilter(areasList, i)) matches.push(makeAreaRow(areasList, i));
     }
-    if (matchesStart.length === limit) return params.groupByLevel ? groupAreasByLevel(matchesStart) : matchesStart;
+
+    areas = matches.toSorted((a, b) => {
+      const aMatch = a.areanm.match(regexStart);
+      const bMatch = b.areanm.match(regexStart);
+      return aMatch && bMatch ? 0 : aMatch ? -1 : bMatch ? 1 : 0;
+    }).slice(offset, offset + limit);
   }
 
-  const matches = [...matchesStart, ...matchesWord].slice(0, limit);
+  const result = {
+    meta: {
+      query: params.name,
+      count: areas.length,
+      total: matches.length,
+      limit,
+      offset
+    },
+    data: params.groupByLevel ? groupAreasByLevel(areas) : areas,
+  }
 
-  return params.groupByLevel ? groupAreasByLevel(matches) : matches;
+  return result;
 }
