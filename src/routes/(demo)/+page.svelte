@@ -41,8 +41,11 @@
   <Card title="Formats and units" mode="featured" href="{base}/formats">
     Adding automatic units, dates and descriptions to data.
   </Card>
-    <Card title="Population pyramids" mode="featured" href="{base}/pyramid">
+  <Card title="Population pyramids" mode="featured" href="{base}/pyramid">
     Options for displaying population by age and sex data.
+  </Card>
+  <Card title="ELS app" mode="featured" href="{base}/app">
+    Rebuilding the ELS app using the API.
   </Card>
 </Grid>
 
