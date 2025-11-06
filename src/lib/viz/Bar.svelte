@@ -4,7 +4,7 @@
   let { data, xKey = "value", yKey = "areacd", selected = null } = $props();
 </script>
 
-<Plot height={500}>
+<Plot height={500} y={{ axis: false}}>
   <BarX
     {data}
     x={xKey}

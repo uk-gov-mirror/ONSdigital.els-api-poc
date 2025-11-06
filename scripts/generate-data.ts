@@ -111,7 +111,7 @@ function indicatorToCube(indicator, t, meta_data, tableSchema, dataset_name) {
             source: meta_data.metadata.source,
             slug: manifest_metadata_indicator[0].slug,
             ...restOfMetadata,
-            experimentalStatistic: meta_data.experimentalStatistic,
+            experimentalStatistic: meta_data.metadata.experimentalStatistic,
             geography: meta_data.metadata.geography
         }
     }
