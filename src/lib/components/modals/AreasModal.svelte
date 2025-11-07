@@ -24,7 +24,7 @@
   {#each pageState.selectedAreas as area, i}
     <Button
       icon="cross"
-      color={pageState.selectedAreas.length < 7 ? ONSpalette[i] : "darkgrey"}
+      color={ONSpalette[i] || "darkgrey"}
       small
       on:click={() => removeArea(area)}>{area.areanm}</Button>
   {/each}
