@@ -176,15 +176,12 @@ function indicatorToCube(indicator, t, meta_data, tableSchema, dataset_name) {
         .filter(d => !['areacd', 'period'].includes(d))
 
     // sort by each dimension (including the newly made measure, which is a dimension)
-    // age is numbers as strings, so needs sorting properly. could also use Intl.collator for this
+    // age is numbers as strings, so needs sorting properly
+    
     indicatorTableLong_periods = indicatorTableLong_periods
-        .derive({ age_sorting: aq.escape(d => parseInt(d.age)) }) // make fake age column that is numeric
         .orderby('areacd', 'period',
-            ...otherDimensions.map(col => col === 'age' ? 'age_sorting' : col), // sort age using fake age column
+            ...otherDimensions.map(col => col === 'age' ? aq.collate('age', { numeric:true }) : col),
             'measure')
-        .select(aq.not('age_sorting'))
-
-    // indicatorTableLong_periods.print()
 
     // get unique values of all columns in order they appear
     const columnValues = Object.fromEntries(
