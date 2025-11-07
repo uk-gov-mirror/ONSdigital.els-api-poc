@@ -21,15 +21,17 @@
   });
   setContext("pageOptions", pageOptions);
 
+  let formatPeriod = $derived(makePeriodFormatter(data.metadata.periodFormat));
+
   let pageState = $state({
     geoCodes: [],
     geoLevel: data.geoLevels.find(g => g.id === data.metadata.geography.initialLevel),
     periodRange: [data.periods[0], data.periods[data.periods.length - 1]],
-    showConfidenceIntervals: false
+    showConfidenceIntervals: false,
+    formatPeriod: () => formatPeriod
   });
   setContext("pageState", pageState);
-
-  let formatPeriod = $derived(makePeriodFormatter(data.metadata.periodFormat));
+  
 </script>
 
 <PhaseBanner phase="prototype"/>
