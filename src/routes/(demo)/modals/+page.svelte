@@ -14,24 +14,16 @@
 
   let { data } = $props();
 
-  let pageOptions = $state({
-    geoAreas: data.areas,
-    geoLevels: data.geoLevels,
-    periods: data.periods
-  });
-  setContext("pageOptions", pageOptions);
-
   let formatPeriod = $derived(makePeriodFormatter(data.metadata.periodFormat));
 
   let pageState = $state({
-    geoCodes: [],
-    geoLevel: data.geoLevels.find(g => g.id === data.metadata.geography.initialLevel),
-    periodRange: [data.periods[0], data.periods[data.periods.length - 1]],
+    selectedAreas: [],
+    selectedGeoLevel: data.geoLevels.find(g => g.id === data.metadata.geography.initialLevel),
+    selectedPeriodRange: [data.periods[0], data.periods[data.periods.length - 1]],
     showConfidenceIntervals: false,
     formatPeriod: () => formatPeriod
   });
   setContext("pageState", pageState);
-  
 </script>
 
 <PhaseBanner phase="prototype"/>
@@ -48,15 +40,15 @@
 <Section>
   <p>
     Geography level:
-    <strong>{pageState.geoLevel.label}</strong>
+    <strong>{pageState.selectedGeoLevel.label}</strong>
   </p>
   <p>
     Selected areas:
-     <strong>{pageState.geoCodes.map(d => d.areanm).join(", ")}</strong>
+     <strong>{pageState.selectedAreas.map(d => d.areanm).join(", ")}</strong>
   </p>
   <p>
     Date range:
-     <strong>{formatPeriod(pageState.periodRange[0])} to {formatPeriod(pageState.periodRange[1])}</strong>
+     <strong>{formatPeriod(pageState.selectedPeriodRange[0])} to {formatPeriod(pageState.selectedPeriodRange[1])}</strong>
   </p>
   <p>
     Show confidence intervals:

@@ -1,27 +1,27 @@
 <script>
+  import { page } from "$app/state";
   import { getContext } from "svelte";
   import { Button, Dropdown, Select } from "@onsvisual/svelte-components";
   import Modal from "./Modal.svelte";
   import { ONSpalette } from "$lib/config.js";
 
-  let pageOptions = getContext("pageOptions");
   let pageState = getContext("pageState");
 
   function addArea(area) {
-    if (!pageState.geoCodes.find(d => d.areacd === area.areacd)) pageState.geoCodes.push(area);
+    if (!pageState.selectedAreas.find(d => d.areacd === area.areacd)) pageState.selectedAreas.push(area);
   }
 
   function removeArea(area) {
-    pageState.geoCodes = pageState.geoCodes.filter(d => d.areacd !== area.areacd);
+    pageState.selectedAreas = pageState.selectedAreas.filter(d => d.areacd !== area.areacd);
   }
 </script>
 
 <Modal title="Select areas" label="Change areas">
-  <Dropdown id="geo-level-select" label="Geography type" options={pageOptions.geoLevels} bind:value={pageState.geoLevel}/>
+  <Dropdown id="geo-level-select" label="Geography type" options={page.data.geoLevels} bind:value={pageState.selectedGeoLevel}/>
   <div class="select-container">
-    <Select id="area-select" label="Individual areas" placeholder="Choose one or more" options={pageOptions.geoAreas} labelKey="areanm" on:change={(e) => addArea(e.detail)} autoClear/>
+    <Select id="area-select" label="Individual areas" placeholder="Choose one or more" options={page.data.areas} labelKey="areanm" on:change={(e) => addArea(e.detail)} autoClear/>
   </div>
-  {#each pageState.geoCodes as area, i}
+  {#each pageState.selectedAreas as area, i}
     <Button
       icon="cross"
       color={ONSpalette[i]}
