@@ -179,9 +179,9 @@ function indicatorToCube(indicator, t, meta_data, tableSchema, dataset_name) {
     // age is numbers as strings, so needs sorting properly
     
     indicatorTableLong_periods = indicatorTableLong_periods
-        .orderby('areacd', 'period',
-            ...otherDimensions.map(col => col === 'age' ? aq.collate('age', { numeric:true }) : col),
-            'measure')
+        .orderby(...['areacd', 'period',
+            ...otherDimensions,
+            'measure'].map(col => aq.collate(col, 'en-GB', { numeric: true })))
 
     // get unique values of all columns in order they appear
     const columnValues = Object.fromEntries(
@@ -321,3 +321,4 @@ cube.link.item = indicator_slugs.map(slug => indicators.find(ind => ind.extensio
 // console.log(cube.link.item)
 const output = "./src/lib/data/json-stat.json";
 writeFileSync(output, JSON.stringify(cube));
+console.log(`Wrote ${output}.`)
