@@ -47,9 +47,9 @@ export function makeGeoDatasetFilter(slug) {
 }
 
 export function makeAreaListFilter(geo, year, indicator) {
-  if (geo === "all" && year === "all" && indicator === "none") return null;
+  if (geo === "all" && year === "all" && indicator === "all") return null;
   const yFilter = year === "all" ? () => true : geoYearFilter;
   const gFilter = geo === "all" ? () => true : makeGeoFilter([geo].flat());
-  const iFilter = indicator === "none" ? () => true : makeGeoDatasetFilter(indicator);
+  const iFilter = indicator === "all" ? () => true : makeGeoDatasetFilter(indicator);
   return (d) => yFilter(d, year) && gFilter(d) && iFilter(d);
 }
